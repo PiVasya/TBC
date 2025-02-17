@@ -23,7 +23,7 @@ app.MapPost("/submitt", async context =>
         Console.WriteLine($"Ошибка при создании бота: {ex.Message}");
     }
 
-    // Перенаправляем что-то
+    // Перенаправляем что-то что-то
     context.Response.Redirect("/index.html");
 });
 
