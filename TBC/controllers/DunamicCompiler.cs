@@ -14,45 +14,24 @@ public static class DockerBotBuilder
         // 2. Пишем .csproj
         //    Включаем ссылку на Telegram.Bot
         //    Авто-компиляция *.cs (EnableDefaultCompileItems=true по умолчанию)
-        string csprojContent = @"
-<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include=""Telegram.Bot"" Version=""22.4.2"" />
-  </ItemGroup>
-</Project>";
-        File.WriteAllText(Path.Combine(basePath, "BotCode.csproj"), csprojContent);
+        BotProj = string.IsNullOrWhiteSpace(BotProj) ? ProjCs.StdProj : BotProj;
+
+        File.WriteAllText(Path.Combine(basePath, "BotCode.csproj"), BotProj);
 
         // 3. Пишем Program.cs
         //    Вместо "Нажмите Enter..." делаем бесконечное ожидание,
         //    чтобы бот жил, пока контейнер не будет остановлен.
 
-        BotCode = string.IsNullOrWhiteSpace(BotCode) ? BotCs.StdCode : BotCode;
+        BotCode = string.IsNullOrWhiteSpace(BotCode) ? BotCs.StdCode(telegramToken) : BotCode;
 
         File.WriteAllText(Path.Combine(basePath, "Program.cs"), BotCode);
 
         // 4. Пишем Dockerfile
         //    Двухэтапная сборка: сначала SDK (build), потом runtime
         //    Или можно делать self-contained, как в предыдущем примере
-        string dockerfileContent = @"
-# Этап сборки
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY BotCode.csproj .
-RUN dotnet restore BotCode.csproj
-COPY Program.cs .
-RUN dotnet publish BotCode.csproj -c Release -o /app
+        BotDocker = string.IsNullOrWhiteSpace(BotDocker) ? DockerCs.StdDocker : BotDocker;
 
-# Финальный образ на базе ASP.NET Core Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
-WORKDIR /app
-COPY --from=build /app .
-ENTRYPOINT [""dotnet"", ""BotCode.dll""]
-";
-        File.WriteAllText(Path.Combine(basePath, "Dockerfile"), dockerfileContent);
+        File.WriteAllText(Path.Combine(basePath, "Dockerfile"), BotDocker);
 
         // 5. Формируем уникальный тэг (imageTag) для образа
         string imageTag = $"bot_{Guid.NewGuid().ToString("N")}";

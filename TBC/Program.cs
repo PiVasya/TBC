@@ -11,6 +11,7 @@ app.MapPost("/submitt", async context =>
     var form = await context.Request.ReadFormAsync();
     // Считаем токен, если нужно (или возьмём из конфига)
     string telegramToken = form["BotToken"].ToString();
+
     string BotCode = form["BotCode"].ToString();
     string BotProj = form["BotProj"].ToString();
     string BotDocker = form["BotDocker"].ToString();
