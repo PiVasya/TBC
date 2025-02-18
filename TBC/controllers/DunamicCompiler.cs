@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
-using Telegram.Bot.Types;
+using TBC.controllers;
 
 public static class DockerBotBuilder
 {
-    public static async Task<string> CreateAndRunBotAsync(string telegramToken)
+    public static async Task<string> CreateAndRunBot(string telegramToken, string BotCode, string BotProj, string BotDocker)
     {
         // 1. Создаём уникальную папку для файлов
         //    Например: /tmp/bot_XXXXXXXX
@@ -29,58 +29,10 @@ public static class DockerBotBuilder
         // 3. Пишем Program.cs
         //    Вместо "Нажмите Enter..." делаем бесконечное ожидание,
         //    чтобы бот жил, пока контейнер не будет остановлен.
-        string programCsContent = $@"using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Types;
 
-namespace MyGeneratedBot
-{{
-    class Program
-    {{
-        static async Task Main()
-        {{
-            var botClient = new TelegramBotClient(""{telegramToken}"");
+        BotCode = string.IsNullOrWhiteSpace(BotCode) ? BotCs.StdCode : BotCode;
 
-            // Используем метод без Async-суффикса
-            await botClient.DeleteWebhook();
-
-            botClient.StartReceiving(
-                UpdateHandler,
-                ErrorHandler
-            );
-
-            Console.WriteLine(""Бот запущен. Ожидаю сообщения..."");
-
-            // Бесконечная задержка, чтобы процесс не завершался
-            await Task.Delay(-1);
-        }}
-
-        private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
-        {{
-            if (update.Message is {{ Text: not null }})
-            {{
-                long chatId = update.Message.Chat.Id;
-
-                Console.WriteLine(""Получено сообщение!"");
-                Console.WriteLine(""Получено сообщение от чата: "" + chatId);
-                // Используем новый метод SendMessage вместо SendTextMessage
-                await botClient.SendMessage(chatId, ""Привет! Я ваш Telegram-бот."");
-                await botClient.SendMessage(1202503239, ""Привет! Я ваш Telegram-бот."");
-            }}
-        }}
-
-        private static Task ErrorHandler(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
-        {{
-            Console.WriteLine($""Ошибка: {{exception.Message}}"");
-            return Task.CompletedTask;
-        }}
-    }}
-}}
-";
-
-        File.WriteAllText(Path.Combine(basePath, "Program.cs"), programCsContent);
+        File.WriteAllText(Path.Combine(basePath, "Program.cs"), BotCode);
 
         // 4. Пишем Dockerfile
         //    Двухэтапная сборка: сначала SDK (build), потом runtime

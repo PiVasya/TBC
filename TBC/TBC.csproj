@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <Content Include="controllers\Config.cs" />
-    <Content Include="controllers\Telegramm.cs" />
   </ItemGroup>
 
   <ItemGroup>
