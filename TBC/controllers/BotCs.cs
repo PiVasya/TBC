@@ -2,7 +2,9 @@
 {
     public class BotCs
     {
-        public static readonly string StdCode = $@"using System;
+        static public string StdCode(string telegramToken)
+        {
+            return ($@"using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -51,6 +53,7 @@ namespace MyGeneratedBot
         }}
     }}
 }}
-";
+");
+        }
     }
 }
