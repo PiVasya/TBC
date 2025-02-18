@@ -27,7 +27,7 @@ namespace MyGeneratedBot
 
 
             // Используем метод без Async-суффикса
-
+             
             await botClient.DeleteWebhook();
 
 
