@@ -14,15 +14,6 @@ app.MapPost("/submitt", async context =>
     string BotCode = form["BotCode"].ToString();
     string BotProj = form["BotProj"].ToString();
     string BotDocker = form["BotDocker"].ToString();
-    Console.WriteLine($"Полученные данные:");
-    Console.WriteLine($"BotToken: {telegramToken}");
-    Console.WriteLine($"НИЖЕ ТЕЛЕГРАММ КОД!!!");
-    Console.WriteLine($"НИЖЕ ТЕЛЕГРАММ КОД!!!");
-    Console.WriteLine($"НИЖЕ ТЕЛЕГРАММ КОД!!!");
-    Console.WriteLine($"BotCode: {BotCode}");
-    Console.WriteLine($"ВЫШЕ ТЕЛЕГРАММ КОД!!!");
-    Console.WriteLine($"BotProj: {BotProj}");
-    Console.WriteLine($"BotDocker: {BotDocker}");
     try
     {
         // Запускаем сборку и запуск нового контейнера
