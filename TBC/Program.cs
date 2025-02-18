@@ -1,32 +1,31 @@
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-// Р’РєР»СЋС‡Р°РµРј РїРѕРґРґРµСЂР¶РєСѓ СЃС‚Р°С‚РёС‡РµСЃРєРёС… С„Р°Р№Р»РѕРІ (С‡С‚РѕР±С‹ РѕС‚РґР°РІР°С‚СЊ index.html)
+// Включаем поддержку статических файлов (чтобы отдавать index.html)
 app.UseStaticFiles();
 
-// Р•СЃР»Рё Сѓ РІР°СЃ РІ index.html С„РѕСЂРјР° `<form method="post" action="/submitt">...</form>`,
-// С‚Рѕ Р»РѕРІРёРј POST Р·РґРµСЃСЊ:
+// Если у вас в index.html форма `<form method="post" action="/submitt">...</form>`,
+// то ловим POST здесь:
 app.MapPost("/submitt", async context =>
 {
     var form = await context.Request.ReadFormAsync();
-    // РЎС‡РёС‚Р°РµРј С‚РѕРєРµРЅ, РµСЃР»Рё РЅСѓР¶РЅРѕ (РёР»Рё РІРѕР·СЊРјС‘Рј РёР· РєРѕРЅС„РёРіР°)
+    // Считаем токен, если нужно (или возьмём из конфига)
     string telegramToken = form["BotToken"].ToString();
     string BotCode = form["BotCode"].ToString();
     string BotProj = form["BotProj"].ToString();
     string BotDocker = form["BotDocker"].ToString();
-
     try
     {
-        // Р—Р°РїСѓСЃРєР°РµРј СЃР±РѕСЂРєСѓ Рё Р·Р°РїСѓСЃРє РЅРѕРІРѕРіРѕ РєРѕРЅС‚РµР№РЅРµСЂР°
-        string containerId = await DockerBotBuilder.CreateAndRunBot(telegramToken, BotCode, BotProj, BotDocker);
-        Console.WriteLine($"РЎРѕР·РґР°РЅ РєРѕРЅС‚РµР№РЅРµСЂ: {containerId}");
+        // Запускаем сборку и запуск нового контейнера
+        string containerId = await DockerBotBuilder.CreateAndRunBot(telegramToken,BotCode,BotProj,BotDocker);
+        Console.WriteLine($"Создан контейнер: {containerId}");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё Р±РѕС‚Р°: {ex.Message}");
+        Console.WriteLine($"Ошибка при создании бота: {ex.Message}");
     }
 
-    // РџРµСЂРµРЅР°РїСЂР°РІР»СЏРµРј
+    // Перенаправляем
     context.Response.Redirect("/index.html");
 });
 

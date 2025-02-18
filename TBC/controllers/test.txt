@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 
 using System.Threading;
 
@@ -18,6 +18,8 @@ namespace MyGeneratedBot
 
     {
 
+
+
         static async Task Main()
 
         {
@@ -26,8 +28,8 @@ namespace MyGeneratedBot
 
 
 
-            // Используем метод без Async-суффикса
-
+            // РСЃРїРѕР»СЊР·СѓРµРј РјРµС‚РѕРґ Р±РµР· Async-СЃСѓС„С„РёРєСЃР°
+             
             await botClient.DeleteWebhook();
 
 
@@ -42,11 +44,11 @@ namespace MyGeneratedBot
 
 
 
-            Console.WriteLine("Бот запущен. Ожидаю сообщения...");
+            Console.WriteLine("Р‘РѕС‚ Р·Р°РїСѓС‰РµРЅ. РћР¶РёРґР°СЋ СЃРѕРѕР±С‰РµРЅРёСЏ...");
 
 
 
-            // Бесконечная задержка, чтобы процесс не завершался
+            // Р‘РµСЃРєРѕРЅРµС‡РЅР°СЏ Р·Р°РґРµСЂР¶РєР°, С‡С‚РѕР±С‹ РїСЂРѕС†РµСЃСЃ РЅРµ Р·Р°РІРµСЂС€Р°Р»СЃСЏ
 
             await Task.Delay(-1);
 
@@ -66,15 +68,15 @@ namespace MyGeneratedBot
 
 
 
-                Console.WriteLine("Получено сообщение!");
+                Console.WriteLine("РџРѕР»СѓС‡РµРЅРѕ СЃРѕРѕР±С‰РµРЅРёРµ!");
 
-                Console.WriteLine("Получено сообщение от чата: " + chatId);
+                Console.WriteLine("РџРѕР»СѓС‡РµРЅРѕ СЃРѕРѕР±С‰РµРЅРёРµ РѕС‚ С‡Р°С‚Р°: " + chatId);
 
-                // Используем новый метод SendMessage вместо SendTextMessage
+                // РСЃРїРѕР»СЊР·СѓРµРј РЅРѕРІС‹Р№ РјРµС‚РѕРґ SendMessage РІРјРµСЃС‚Рѕ SendTextMessage
 
-                await botClient.SendMessage(chatId, "ПРИВЕТ ЕРЖАН");
+                await botClient.SendMessage(chatId, "РџР РР’Р•Рў Р•Р Р–РђРќ");
 
-                await botClient.SendMessage(1202503239, "Привет! Я ваш Telegram-бот.");
+                await botClient.SendMessage(1202503239, "РџСЂРёРІРµС‚! РЇ РІР°С€ Telegram-Р±РѕС‚.");
 
             }
 
@@ -86,7 +88,7 @@ namespace MyGeneratedBot
 
         {
 
-            Console.WriteLine($"Ошибка: {exception.Message}");
+            Console.WriteLine($"РћС€РёР±РєР°: {exception.Message}");
 
             return Task.CompletedTask;
 
