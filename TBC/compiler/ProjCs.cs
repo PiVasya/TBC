@@ -1,4 +1,4 @@
-﻿namespace TBC.controllers
+﻿namespace TBC.compiler
 {
     public class ProjCs
     {

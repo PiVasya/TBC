@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using TBC.controllers;
+using TBC.compiler;
 
 public static class DockerBotBuilder
 {
@@ -12,23 +12,20 @@ public static class DockerBotBuilder
         Directory.CreateDirectory(basePath);
 
         // 2. Пишем .csproj
-        //    Включаем ссылку на Telegram.Bot
-        //    Авто-компиляция *.cs (EnableDefaultCompileItems=true по умолчанию)
+        //ProjCs.StdProj возвращает стандартный простейший код бота, если пользователь решил не вводить на сайте код
+        //конечно же данное решение временное (больше для тестов)
         BotProj = string.IsNullOrWhiteSpace(BotProj) ? ProjCs.StdProj : BotProj;
 
         File.WriteAllText(Path.Combine(basePath, "BotCode.csproj"), BotProj);
 
-        // 3. Пишем Program.cs
-        //    Вместо "Нажмите Enter..." делаем бесконечное ожидание,
-        //    чтобы бот жил, пока контейнер не будет остановлен.
-
+        //BotCs.StdCode(telegramToken) Возвращает стандартный простейший код бота, если пользователь решил не вводить на сайте код
+        //конечно же данное решение временное (больше для тестов)
         BotCode = string.IsNullOrWhiteSpace(BotCode) ? BotCs.StdCode(telegramToken) : BotCode;
 
         File.WriteAllText(Path.Combine(basePath, "Program.cs"), BotCode);
 
         // 4. Пишем Dockerfile
-        //    Двухэтапная сборка: сначала SDK (build), потом runtime
-        //    Или можно делать self-contained, как в предыдущем примере
+        //Также станданртный докер файл
         BotDocker = string.IsNullOrWhiteSpace(BotDocker) ? DockerCs.StdDocker : BotDocker;
 
         File.WriteAllText(Path.Combine(basePath, "Dockerfile"), BotDocker);
@@ -54,7 +51,7 @@ public static class DockerBotBuilder
         string buildError = await buildProcess.StandardError.ReadToEndAsync();
         buildProcess.WaitForExit();
 
-        Console.WriteLine("=== DOCKER BUILD OUTPUT ===");
+        Console.WriteLine("=== DOCKER BUILD OUTPUT ===");           //это тоже временное решение, так как логов слишком много в будущем я их обрежу
         Console.WriteLine(buildOutput);
         Console.WriteLine("=== DOCKER BUILD ERROR ===");
         Console.WriteLine(buildError);
@@ -81,7 +78,7 @@ public static class DockerBotBuilder
         string runError = await runProcess.StandardError.ReadToEndAsync();
         runProcess.WaitForExit();
 
-        Console.WriteLine("=== DOCKER RUN OUTPUT ===");
+        Console.WriteLine("=== DOCKER RUN OUTPUT ===");             //это тоже временное решение, так как логов слишком много в будущем я их обрежу
         Console.WriteLine(runOutput);
         Console.WriteLine("=== DOCKER RUN ERROR ===");
         Console.WriteLine(runError);
@@ -91,7 +88,7 @@ public static class DockerBotBuilder
             throw new Exception($"docker run failed with code {runProcess.ExitCode}");
         }
 
-        // runOutput обычно возвращает ID контейнера
+        // runOutput вернёт нам айди контейнера чтобы мы смогли вывести это в логах
         string containerId = runOutput.Trim();
 
         Console.WriteLine($"✅ Контейнер {containerId} (образ {imageTag}) успешно запущен!");

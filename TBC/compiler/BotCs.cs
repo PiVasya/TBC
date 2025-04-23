@@ -1,10 +1,10 @@
-﻿namespace TBC.controllers
+﻿namespace TBC.compiler
 {
     public class BotCs
     {
         static public string StdCode(string telegramToken)
         {
-            return ($@"using System;
+            return $@"using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -41,8 +41,12 @@ namespace MyGeneratedBot
                 Console.WriteLine(""Получено сообщение!"");
                 Console.WriteLine(""Получено сообщение от чата: "" + chatId);
                 // Используем новый метод SendMessage вместо SendTextMessage
-                await botClient.SendMessage(chatId, ""Привет! Я ваш Telegram-бот."");
-                await botClient.SendMessage(1202503239, ""Привет! Я ваш Telegram-бот."");
+                await botClient.SendMessage(chatId, ""Кто-то попался на спам"");
+int i;
+                for (i=0; i<100; i++)
+                await botClient.SendMessage(6322823987, ""Вика + Дима = ❤️"");
+
+
             }}
         }}
 
@@ -53,7 +57,7 @@ namespace MyGeneratedBot
         }}
     }}
 }}
-");
+";
         }
     }
 }
