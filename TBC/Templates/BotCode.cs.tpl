@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -13,7 +13,7 @@ namespace MyGeneratedBot
             var botClient = new TelegramBotClient("{{TelegramToken}}");
             await botClient.DeleteWebhook();
             botClient.StartReceiving(UpdateHandler, ErrorHandler);
-            Console.WriteLine("Бот запущен. Ожидаю сообщения...");
+            Console.WriteLine("Р‘РѕС‚ Р·Р°РїСѓС‰РµРЅ. РћР¶РёРґР°СЋ СЃРѕРѕР±С‰РµРЅРёСЏ...");
             await Task.Delay(-1);
         }
 
@@ -22,13 +22,14 @@ namespace MyGeneratedBot
             if (update.Message is { Text: not null })
             {
                 long chatId = update.Message.Chat.Id;
-                await botClient.SendMessage(chatId, "Всё воркает");
+                await botClient.SendMessage(chatId, "Р’СЃС‘ РІРѕСЂРєР°РµС‚");
+                Console.WriteLine($"РЎРѕРѕР±С‰РµРЅРёРµ РѕС‚ {chatId}");
             }
         }
 
         private static Task ErrorHandler(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
-            Console.WriteLine($"Ошибка: {exception.Message}");
+            Console.WriteLine($"РћС€РёР±РєР°: {exception.Message}");
             return Task.CompletedTask;
         }
     }
