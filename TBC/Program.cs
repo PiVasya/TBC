@@ -2,7 +2,7 @@
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Добавляем папку Controllers (HTTP API)
+// 1. Добавляем папку Controllers
 builder.Services.AddControllers();
 
 // 2. Регистрируем наш DockerBotBuilder как сервис
