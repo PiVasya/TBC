@@ -10,6 +10,7 @@
       "applicationUrl": "http://localhost:5058"
     },
     "https": {
+      "launchUrl": "",
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

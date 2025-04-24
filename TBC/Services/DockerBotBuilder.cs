@@ -15,9 +15,9 @@ namespace TBC.Services
 
         public async Task<string> CreateAndRunBot(
             string telegramToken,
-            string botCode,
-            string botProj,
-            string botDocker)
+            string? botCode,
+            string? botProj,
+            string? botDocker)
         {
             // 1. Путь для файлов
             string folderName = "bot_" + Guid.NewGuid().ToString("N");

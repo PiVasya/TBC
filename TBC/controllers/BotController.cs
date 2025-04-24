@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TBC.Models;
 using TBC.Services;
 
-namespace MyProject.Controllers
+namespace TBC.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
