@@ -1,4 +1,6 @@
-﻿import { useState } from 'react';
+﻿// clientapp/src/App.jsx
+import { useState, useEffect } from 'react';
+import { getContainers, startContainer, stopContainer, deleteContainer } from './api/containerApi';
 import DockerMenu from './components/DockerMenu';
 import './App.css';
 
@@ -10,7 +12,40 @@ function App() {
     const [containerId, setContainerId] = useState(null);
     const [creating, setCreating] = useState(false);
 
-    const onSubmit = async (e) => {
+    const [containers, setContainers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    // фильтры
+    const [search, setSearch] = useState('');
+    const [onlyBots, setOnlyBots] = useState(false);
+
+    // загрузка списка контейнеров
+    const fetchContainers = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            setContainers(await getContainers());
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchContainers();
+    }, []);
+
+    // отфильтрованный список
+    const displayed = containers.filter(c => {
+        if (search && !c.name.includes(search)) return false;
+        if (onlyBots && !c.name.startsWith('bot_')) return false;
+        return true;
+    });
+
+    // создание нового бота
+    const onSubmit = async e => {
         e.preventDefault();
         setCreating(true);
         const form = new FormData();
@@ -20,13 +55,11 @@ function App() {
         form.append('BotDocker', docker);
 
         try {
-            const res = await fetch('/api/bots/create', {
-                method: 'POST',
-                body: form
-            });
+            const res = await fetch('/api/bots/create', { method: 'POST', body: form });
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || 'Неизвестная ошибка');
             setContainerId(json.containerId);
+            await fetchContainers();
         } catch (err) {
             alert('Ошибка: ' + err.message);
         } finally {
@@ -34,21 +67,34 @@ function App() {
         }
     };
 
-    // пока просто заглушка для меню — позже будем подтягивать из API
-    const dummyContainers = [
-        { id: '1a2b', name: 'bot-1234' },
-        { id: '2b3c', name: 'bot-5678' },
-        { id: '3c4d', name: 'bot-9012' },
-        // ... можно добавить ещё, чтобы была прокрутка
-    ];
+    // старит/стопит контейнер
+    const toggleContainer = async c => {
+        try {
+            if (c.status === 'running') await stopContainer(c.id);
+            else await startContainer(c.id);
+            await fetchContainers();
+        } catch (e) {
+            alert(e.message);
+        }
+    };
+    //удаляет контейнер
+    const onDelete = async c => {
+        if (!window.confirm(`Удалить контейнер ${c.name}?`)) return;
+        try {
+            await deleteContainer(c.id);
+            await fetchContainers();
+        } catch (e) {
+            alert(e.message);
+        }
+    };
 
     return (
         <div className="app-container">
             <h1>Запустить Telegram-бота</h1>
+
             <form onSubmit={onSubmit}>
                 <input
                     className="form-input"
-                    type="text"
                     value={token}
                     onChange={e => setToken(e.target.value)}
                     placeholder="Токен бота"
@@ -62,23 +108,17 @@ function App() {
                 />
                 <input
                     className="form-input"
-                    type="text"
                     value={proj}
                     onChange={e => setProj(e.target.value)}
                     placeholder=".csproj (необязательно)"
                 />
                 <input
                     className="form-input"
-                    type="text"
                     value={docker}
                     onChange={e => setDocker(e.target.value)}
                     placeholder="Dockerfile (необязательно)"
                 />
-                <button
-                    className="form-button"
-                    type="submit"
-                    disabled={creating}
-                >
+                <button className="form-button" type="submit" disabled={creating}>
                     {creating ? 'Запускаем...' : 'Запустить бота'}
                 </button>
             </form>
@@ -89,7 +129,40 @@ function App() {
                 </p>
             )}
 
-            <DockerMenu items={dummyContainers} />
+            <h2>Список контейнеров</h2>
+
+            {loading ? (
+                <p>Загрузка...</p>
+            ) : error ? (
+                <p className="error">Ошибка: {error}</p>
+            ) : (
+                <>
+                    {/* Фильтры */}
+                    <div className="filters">
+                        <input
+                            type="text"
+                            placeholder="Поиск по имени…"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={onlyBots}
+                                onChange={e => setOnlyBots(e.target.checked)}
+                            />
+                            Только боты
+                        </label>
+                    </div>
+
+                    {/* Отфильтрованный список контейнеров */}
+                        <DockerMenu
+                            items={displayed}
+                            onToggle={toggleContainer}
+                            onDelete={onDelete}
+                        />
+                </>
+            )}
         </div>
     );
 }

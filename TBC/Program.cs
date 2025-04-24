@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using TBC.Services;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // 1) Регистрируем сервис компрессии и исключаем из него text/html
@@ -16,6 +17,8 @@ builder.Services.AddResponseCompression(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IDockerBotBuilder, DockerBotBuilder>();
+builder.Services.AddSingleton<IContainerService, ContainerService>();
+
 builder.Services.AddSpaStaticFiles(options =>
 {
     options.RootPath = "clientapp/build";
