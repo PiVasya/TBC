@@ -18,6 +18,7 @@ builder.Services.AddResponseCompression(options =>
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IDockerBotBuilder, DockerBotBuilder>();
 builder.Services.AddSingleton<IContainerService, ContainerService>();
+builder.WebHost.UseUrls("http://0.0.0.0:5058");
 
 builder.Services.AddSpaStaticFiles(options =>
 {
@@ -33,7 +34,6 @@ app.UseSpaStaticFiles();
 app.UseRouting();
 
 // ✅ Добавляем CORS, если нужен
-// app.UseCors(...); 
 
 // ✅ Контроллеры внутри UseEndpoints
 app.UseEndpoints(endpoints =>

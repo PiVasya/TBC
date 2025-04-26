@@ -1,0 +1,27 @@
+/* clientapp/src/components/CustomNode.css */
+.custom-node {
+    position: relative;
+    padding: 8px 12px;
+    border: 1px solid #222;
+    border-radius: 4px;
+    background: #fff;
+    min-width: 100px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.node-delete-btn {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.node-label {
+    pointer-events: none;
+    user-select: none;
+}
