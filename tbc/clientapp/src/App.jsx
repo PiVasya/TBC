@@ -1,10 +1,15 @@
-﻿import React, { useState, useEffect } from 'react';
-import { getContainers, startContainer, stopContainer, deleteContainer } from './api/containerApi';
+import React, { useState, useEffect } from 'react';
+import {
+    getContainers,
+    startContainer,
+    stopContainer,
+    deleteContainer
+} from './api/containerApi';
 import DockerMenu from './components/DockerMenu';
-import './App.css';
 import NodeEditor from './components/NodeEditor';
+import './App.css';
 
-function App() {
+export default function App() {
     const [showEditor, setShowEditor] = useState(false);
 
     const [token, setToken] = useState('');
@@ -85,94 +90,79 @@ function App() {
         }
     };
 
+    if (showEditor) {
+        return (
+            <div className="editor-fullscreen">
+                <NodeEditor onBack={() => setShowEditor(false)} />
+            </div>
+        );
+    }
+
     return (
         <div className="app-container">
-            <button
-                className="toggle-editor-button"
-                onClick={() => setShowEditor(prev => !prev)}
-            >
-                {showEditor ? '← Вернуться к контейнерам' : 'Открыть редактор нод'}
-            </button>
+            <div className="panel">
+                <h2>Запустить Telegram-бота</h2>
+                <form onSubmit={onSubmit}>
+                    <input
+                        className="form-input"
+                        value={token}
+                        onChange={e => setToken(e.target.value)}
+                        placeholder="Токен бота"
+                        required
+                    />
+                    <textarea
+                        className="form-textarea"
+                        value={code}
+                        onChange={e => setCode(e.target.value)}
+                        placeholder="Код бота (необязательно)"
+                    />
+                    <input
+                        className="form-input"
+                        value={proj}
+                        onChange={e => setProj(e.target.value)}
+                        placeholder=".csproj (необязательно)"
+                    />
+                    <input
+                        className="form-input"
+                        value={docker}
+                        onChange={e => setDocker(e.target.value)}
+                        placeholder="Dockerfile (необязательно)"
+                    />
+                    <button className="app-button" type="submit" disabled={creating}>
+                        {creating ? 'Запускаем…' : 'Запустить бота'}
+                    </button>
+                </form>
+                <button className="app-button outline" onClick={() => setShowEditor(true)}>
+                    Открыть редактор нод
+                </button>
+            </div>
 
-            {showEditor ? (
-                <div className="editor-view">
-                    <NodeEditor />
-                </div>
-            ) : (
-                <>
-                    <h1>Запустить Telegram-бота</h1>
-
-                    <form onSubmit={onSubmit}>
-                        <input
-                            className="form-input"
-                            value={token}
-                            onChange={e => setToken(e.target.value)}
-                            placeholder="Токен бота"
-                            required
-                        />
-                        <textarea
-                            className="form-textarea"
-                            value={code}
-                            onChange={e => setCode(e.target.value)}
-                            placeholder="Код бота (необязательно)"
-                        />
-                        <input
-                            className="form-input"
-                            value={proj}
-                            onChange={e => setProj(e.target.value)}
-                            placeholder=".csproj (необязательно)"
-                        />
-                        <input
-                            className="form-input"
-                            value={docker}
-                            onChange={e => setDocker(e.target.value)}
-                            placeholder="Dockerfile (необязательно)"
-                        />
-                        <button className="form-button" type="submit" disabled={creating}>
-                            {creating ? 'Запускаем...' : 'Запустить бота'}
-                        </button>
-                    </form>
-
-                    {containerId && (
-                        <p className="result">
-                            Контейнер запущен: <code>{containerId}</code>
-                        </p>
-                    )}
-
-                    <h2>Список контейнеров</h2>
-                    {loading ? (
-                        <p>Загрузка...</p>
-                    ) : error ? (
-                        <p className="error">Ошибка: {error}</p>
-                    ) : (
-                        <>
-                            <div className="filters">
-                                <input
-                                    type="text"
-                                    placeholder="Поиск по имени…"
-                                    value={search}
-                                    onChange={e => setSearch(e.target.value)}
-                                />
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        checked={onlyBots}
-                                        onChange={e => setOnlyBots(e.target.checked)}
-                                    />
-                                    Только боты
-                                </label>
-                            </div>
-                            <DockerMenu
-                                items={displayed}
-                                onToggle={toggleContainer}
-                                onDelete={onDelete}
+            <div className="panel">
+                <h2>Список контейнеров</h2>
+                {loading && <p>Загрузка…</p>}
+                {error && <p className="error">Ошибка: {error}</p>}
+                {!loading && !error && (
+                    <>
+                        <div className="filters">
+                            <input
+                                type="text"
+                                placeholder="Поиск…"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
                             />
-                        </>
-                    )}
-                </>
-            )}
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={onlyBots}
+                                    onChange={e => setOnlyBots(e.target.checked)}
+                                />
+                                Только боты
+                            </label>
+                        </div>
+                        <DockerMenu items={displayed} onToggle={toggleContainer} onDelete={onDelete} />
+                    </>
+                )}
+            </div>
         </div>
     );
 }
-
-export default App;

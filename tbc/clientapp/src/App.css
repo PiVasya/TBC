@@ -1,160 +1,113 @@
-﻿/* Общие стили */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 .app-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-    font-family: sans-serif;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1rem;
+    height: 100vh;
+    padding: 1rem;
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
 }
 
-h1, h2 {
-    text-align: center;
+.panel {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    overflow-y: auto;
 }
 
-/* Форма */
+.app-button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #0069d9;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+    .app-button:hover {
+        background: #0053ba;
+    }
+
+    .app-button.outline {
+        background: transparent;
+        color: #0069d9;
+        border: 1px solid #0069d9;
+    }
+
+        .app-button.outline:hover {
+            background: #e9f2fe;
+        }
+
+    .app-button.sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .app-button.danger {
+        background: #dc3545;
+    }
+
+        .app-button.danger:hover {
+            background: #c82333;
+        }
+
 .form-input,
 .form-textarea {
     width: 100%;
     padding: 0.5rem;
-    margin-bottom: 1rem;
+    margin-top: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
 .form-textarea {
-    height: 120px;
+    min-height: 100px;
     resize: vertical;
 }
 
-.form-button {
-    width: 100%;
-    padding: 0.75rem;
-    background: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-    .form-button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-/* Список контейнеров */
-.docker-menu {
+.filters {
     display: flex;
-    flex-direction: column;
     gap: 0.5rem;
-    max-height: 300px;
-    overflow-y: auto;
-    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
-.docker-menu-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: #fafafa;
-}
-
-.toggle-btn {
-    padding: 0.25rem 0.5rem;
-    border: none;
-    border-radius: 3px;
-    color: #fff;
-    cursor: pointer;
-}
-
-    .toggle-btn.start {
-        background: #2ecc71;
+    .filters input[type="text"] {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
     }
 
-    .toggle-btn.stop {
-        background: #e74c3c;
+    .filters label {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.9rem;
     }
-
-/* Ошибки и результаты */
-.result {
-    text-align: center;
-    margin-top: 1rem;
-}
 
 .error {
-    color: #e74c3c;
+    color: #dc3545;
+    margin: 1rem 0;
     text-align: center;
 }
-.filters {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-bottom: 1rem;
+
+.panel h2 {
+    margin-bottom: 1rem;
+    text-align: center;
 }
 
-.filters input[type="text"] {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.filters label {
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.docker-menu-item .actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.delete-btn {
-  padding: 0.25rem 0.5rem;
-  background: #d9534f;
-  color: #fff;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-}
-.delete-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.toggle-editor-button {
-    display: block;
-    margin: 0 auto 1rem;
-    padding: 0.5rem 1rem;
-    background: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.editor-view {
-    width: 100%;
-}
-
-.add-node-button {
-    margin-bottom: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #28a745;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.app-container {
-    max-width: none;
-    width: 100%;
+.editor-fullscreen {
     padding: 1rem;
+    height: 100vh;
+    background: #f0f2f5;
 }
-
-
-
-
-
-
