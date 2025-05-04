@@ -1,3 +1,16 @@
+/* базовые стили для всех нод */
+.custom-node {
+    padding: 0.5rem 1rem;
+    border: 2px solid; /* <- здесь будет окрашиваться цветом из .start-node/.action-node/... */
+    border-radius: 6px;
+    background: #fff;
+    min-width: 120px;
+    box-sizing: border-box; /* чтобы padding/width вели себя предсказуемо */
+    font-size: 0.9rem;
+    position: relative;
+}
+
+
 .node-editor-container {
     display: grid;
     grid-template-columns: 180px 1fr;

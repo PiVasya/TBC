@@ -4,8 +4,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 RUN apt-get update && apt-get install -y docker.io
 # Остаёмся под root (НЕ используем USER $APP_UID)
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 80
 
 # (2) Этап сборки
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
@@ -26,7 +25,7 @@ RUN dotnet publish "TBC.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAp
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENV ASPNETCORE_URLS=http://+:8080;https://+:8081
+ENV ASPNETCORE_URLS=http://+:80
 
 # Запуск приложения
 ENTRYPOINT ["dotnet", "TBC.dll"]

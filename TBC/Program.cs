@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using TBC.Services;
 
@@ -18,7 +18,7 @@ builder.Services.AddResponseCompression(options =>
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IDockerBotBuilder, DockerBotBuilder>();
 builder.Services.AddSingleton<IContainerService, ContainerService>();
-builder.WebHost.UseUrls("http://0.0.0.0:5058");
+builder.WebHost.UseUrls("http://0.0.0.0:80");
 
 builder.Services.AddSpaStaticFiles(options =>
 {

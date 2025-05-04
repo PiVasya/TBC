@@ -1,26 +1,13 @@
-# 1) Build-stage: собираем SPA
+# 1) РЎРѕР±РёСЂР°РµРј React-РїСЂРёР»РѕР¶РµРЅРёРµ
 FROM node:18-alpine AS build
-
 WORKDIR /app
-
-# Копируем только нужное для npm ci
-COPY package.json package-lock.json* ./
-
+COPY package*.json ./
 RUN npm ci
-
-# Копируем всё остальное и билдим
 COPY . .
 RUN npm run build
 
-# 2) Prod-stage: берём nginx и копируем в папку серверных статики
-FROM nginx:alpine
-
-# (опционально) ваш кастомный конфиг nginx:
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Статика из предыдущего этапа
+# 2) Р Р°Р·РґР°С‘Рј СЃС‚Р°С‚РёРєСѓ С‡РµСЂРµР· nginx:alpine
+FROM nginx:alpine AS runtime
 COPY --from=build /app/build /usr/share/nginx/html
-
 EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["nginx","-g","daemon off;"]

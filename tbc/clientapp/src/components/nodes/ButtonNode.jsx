@@ -7,24 +7,34 @@ export default function ButtonNode({ id, data }) {
     return (
         <div className="custom-node button-node">
             <div className="node-header">
-                <span>🔘 Button</span>
+                <span>🔘 {data.label || 'Button'}</span>
                 <div className="node-actions">
                     <button onClick={() => data.onEdit(id)}>✎</button>
                     <button onClick={() => data.onDelete(id)}>✕</button>
                 </div>
             </div>
-            {/* Вход сверху */}
+
+            {/* прямоугольник сверху */}
             <Handle
                 type="target"
+                id="top"
                 position={Position.Top}
-                id="in"
-                style={{ background: '#555' }}
+                className="rect-handle"
             />
-            {/* Выход снизу */}
+
+            {/* прямоугольник снизу (точка «магнит») */}
             <Handle
                 type="source"
+                id="bottom"
                 position={Position.Bottom}
-                id="out"
+                className="rect-handle"
+            />
+
+            {/* КРУГЛЫЙ основной выход справа */}
+            <Handle
+                type="source"
+                id="right"
+                position={Position.Right}
                 style={{ background: '#555' }}
             />
         </div>
