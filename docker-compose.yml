@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   nginx:
     image: nginx:alpine
@@ -12,25 +13,28 @@ services:
 
   frontend:
     build:
-      context: ./TBC/clientapp    # <-- здесь клиентское приложение
+      context: ./TBC/clientapp
       dockerfile: Dockerfile
     container_name: TBC_Frontend
     expose:
       - "80"
 
   api:
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      - DOCKER_HOST=unix:///var/run/docker.sock
     build:
-      context: ./TBC            # <-- здесь ваш ASP.NET-проект
+      context: ./TBC
       dockerfile: Dockerfile
     container_name: TBC_Api
     expose:
       - "80"
     depends_on:
       - db
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - ConnectionStrings__Default=Host=db;Port=5432;Database=TBCdb;Username=postgres;Password=secret
 
   db:
     image: postgres:17

@@ -1,216 +1,201 @@
 // clientapp/src/components/NodeEditor.jsx
-import React, { useCallback, useRef, useState } from 'react';
-import ReactFlow, {
-    ReactFlowProvider,
-    addEdge,
-    applyEdgeChanges,
-    Background,
-    Controls,
-    useNodesState,
-    useEdgesState,
-    MarkerType
-} from 'reactflow';
+import React, { useState, useEffect } from 'react';
+import ReactFlow, { ReactFlowProvider, Background, Controls } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './NodeEditor.css';
+import useFlow from '../hooks/useFlow';
+import { listSchemas, getSchema, postSchema } from '../api/schemaApi';
+import { createBot, updateBot } from '../api/botApi';
 
-// Динамический импорт всех типов нод
-const req = require.context('./nodes', false, /\.jsx$/);
-const nodeTypes = req.keys().reduce((acc, path) => {
-    const mod = req(path);
-    const name = path.replace('./', '').replace('.jsx', '');
-    acc[name] = mod.default;
-    return acc;
-}, {});
+export default function NodeEditor({
+    botId,               // если есть — редактируем, иначе — создаём
+    initialName,
+    initialToken,
+    onBack,
+    onCreated           // callback(data: BotDto) при создании
+}) {
+    const [name, setName] = useState(initialName);
+    const [token, setToken] = useState(initialToken);
+    const [versions, setVersions] = useState([]);
+    const [selectedVersion, setSelectedVersion] = useState(null);
 
-export default function NodeEditor({ onBack }) {
-    const idRef = useRef(1);
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const [schemaText, setSchemaText] = useState('');
+    const flow = useFlow();
+    const {
+        nodes,
+        edges,
+        onNodesChange,
+        onEdgesChange,
+        onConnect,
+        onEdgeDoubleClick,
+        onNodeDragStop,
+        addNode,
+        setNodes,
+        setEdges
+    } = flow;
 
-    const loadSchema = () => {
-        try {
-            const { nodes: loadedNodes, edges: loadedEdges } = JSON.parse(schemaText);
-            setNodes(loadedNodes || []);
-            setEdges(loadedEdges || []);
-            // сбросим счётчик id, чтобы новые ноды не пересеклись
-            idRef.current = (loadedNodes?.length || 0) + 1;
-        } catch (err) {
-            alert('Невалидный JSON: ' + err.message);
+    const [dirty, setDirty] = useState(false);
+
+    // определяем «грязность»: любое изменение полей или схемы
+    useEffect(() => {
+        const schemaChanged =
+            JSON.stringify({ nodes, edges }) !== JSON.stringify({ nodes: [], edges: [] });
+        setDirty(
+            name !== initialName ||
+            token !== initialToken ||
+            schemaChanged
+        );
+    }, [name, token, nodes, edges, initialName, initialToken]);
+
+    useEffect(() => {
+        if (!botId) return;
+        (async () => {
+            // 1) получить список версий
+            const vs = await listSchemas(botId);
+            setVersions(vs);
+            if (vs.length === 0) return;
+
+            // 2) сразу выбрать самую первую (самую свежую) версию
+            const latest = vs[0];
+            setSelectedVersion(latest.id);
+
+            // 3) и загрузить по ней схему
+            const schema = await getSchema(botId, latest.id);
+            setNodes(schema.nodes || []);
+            setEdges(schema.edges || []);
+
+        })();
+    }, [botId, setNodes, setEdges]);
+
+    const handleSave = async () => {
+        if (!dirty) return;
+
+        if (!botId) {
+            // создание нового бота вместе со схемой
+            const dto = await createBot({
+                name,
+                telegramToken: token,
+                schema: { nodes, edges }
+            });
+            onCreated(dto);
+        } else {
+            // обновить имя и токен существующего бота
+            await updateBot(botId, { name, telegramToken: token });
+            // сохранить новую версию схемы
+            await postSchema(botId, { nodes, edges });
+            alert('Изменения сохранены');
         }
+
+        setDirty(false);
     };
-
-    // Блокировка удаления магнитных связей
-    const handleEdgesChange = useCallback((changes) => {
-        const filtered = changes.filter(change => {
-            if (change.type === 'remove') {
-                const edge = edges.find(e => e.id === change.id);
-                return !edge?.data?.magnet;
-            }
-            return true;
-        });
-        setEdges(es => applyEdgeChanges(filtered, es));
-    }, [edges, setEdges]);
-
-    // Ручное соединение
-    const onConnect = useCallback((params) => {
-        setEdges(es => addEdge({
-            ...params,
-            markerEnd: { type: MarkerType.ArrowClosed },
-            data: { magnet: false }
-        }, es));
-    }, [setEdges]);
-
-    // после onConnect и before onNodeDragStop
-    const onEdgeDoubleClick = useCallback((event, edge) => {
-        // не даём удалить «магнитные» связи
-        if (!edge.data?.magnet) {
-            setEdges(es => es.filter(e => e.id !== edge.id));
-        }
-    }, [setEdges]);
-
-    // Обработка перетаскивания нод
-    const onNodeDragStop = useCallback((_, dragged) => {
-        // Если ButtonNode уже приклеен — возвращаем на место
-        if (dragged.type === 'ButtonNode') {
-            const magEdge = edges.find(e => e.data?.magnet && e.target === dragged.id);
-            if (magEdge) {
-                const srcNode = nodes.find(n => n.id === magEdge.source);
-                if (srcNode) {
-                    setNodes(nds => nds.map(n =>
-                        n.id === dragged.id
-                            ? { ...n, position: { x: srcNode.position.x, y: srcNode.position.y + (srcNode.height || dragged.height || 40) } }
-                            : n
-                    ));
-                }
-                return;
-            }
-        }
-
-        // Примагничивание новых ButtonNode
-        if (dragged.type === 'ButtonNode') {
-            const SNAP = 30;
-            const w = dragged.width || 120;
-            const h = dragged.height || 40;
-
-            nodes.forEach(target => {
-                if (target.id === dragged.id) return;
-                if (target.type !== 'ButtonNode' && target.type !== 'ActionNode') return;
-
-                const tx = target.position.x + (target.width || w) / 2;
-                const ty = target.position.y + (target.height || h);
-                const dx = dragged.position.x + w / 2;
-                const dy = dragged.position.y;
-
-                if (Math.abs(tx - dx) < SNAP && Math.abs(ty - dy) < SNAP) {
-                    setNodes(nds => nds.map(n =>
-                        n.id === dragged.id
-                            ? { ...n, position: { x: target.position.x, y: target.position.y + (target.height || h) } }
-                            : n
-                    ));
-                    setEdges(es => addEdge({
-                        id: `mag-${target.id}-${dragged.id}`,
-                        source: target.id,
-                        target: dragged.id,
-                        markerEnd: { type: MarkerType.ArrowClosed },
-                        data: { magnet: true }
-                    }, es));
-                }
-            });
-        }
-
-        // Перемещение ActionNode и всех его приклеенных потомков
-        if (dragged.type === 'ActionNode') {
-            const adj = {};
-            edges.forEach(e => {
-                if (e.data?.magnet) {
-                    adj[e.source] = adj[e.source] || [];
-                    adj[e.source].push(e.target);
-                }
-            });
-
-            const newPos = {};
-            newPos[dragged.id] = { x: dragged.position.x, y: dragged.position.y };
-            const compute = (parentId) => {
-                const children = adj[parentId] || [];
-                const parent = newPos[parentId] || nodes.find(n => n.id === parentId).position;
-                const parentHeight = nodes.find(n => n.id === parentId)?.height || 40;
-                children.forEach(childId => {
-                    newPos[childId] = { x: parent.x, y: parent.y + parentHeight };
-                    compute(childId);
-                });
-            };
-            compute(dragged.id);
-
-            setNodes(nds => nds.map(n => newPos[n.id] ? { ...n, position: newPos[n.id] } : n));
-        }
-    }, [nodes, edges, setNodes, setEdges]);
-
-    // Добавление новой ноды
-    const addNode = useCallback((type) => {
-        const id = String(idRef.current++);
-        const offset = 150;
-        setNodes(nds => [...nds, {
-            id,
-            type,
-            data: {
-                label: `${type} ${id}`,
-                onDelete: nid => {
-                    setNodes(n => n.filter(x => x.id !== nid));
-                    setEdges(e => e.filter(x => x.source !== nid && x.target !== nid));
-                },
-                onEdit: nid => console.log('edit', nid)
-            },
-            position: { x: (nds.length % 3) * offset + 50, y: Math.floor(nds.length / 3) * offset + 50 }
-        }]);
-    }, [setNodes, setEdges]);
 
     return (
         <div className="node-editor-container">
             <div className="sidebar">
-
-
-                <h3>Загрузка схемы</h3>
-                <textarea
-                    className="form-textarea"
-                    style={{ height: '100px', fontSize: '0.75rem' }}
-                    placeholder='Вставьте JSON { "nodes": [...], "edges": [...] }'
-                    value={schemaText}
-                    onChange={e => setSchemaText(e.target.value)}
-                />
-                <button
-                    className="app-button sm"
-                    onClick={loadSchema}
-                >
-                    Загрузить
+                <button className="app-button outline sm back-btn" onClick={onBack}>
+                    ← Вернуться
                 </button>
 
+                <h3>{botId ? 'Редактирование бота' : 'Новый бот'}</h3>
 
-                <button className="app-button outline sm back-btn" onClick={onBack}>← Вернуться</button>
+                <label>
+                    Имя бота<br />
+                    <input
+                        className="form-input"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                    />
+                </label>
+
+                <label>
+                    Telegram-токен<br />
+                    <input
+                        className="form-input"
+                        value={token}
+                        onChange={e => setToken(e.target.value)}
+                    />
+                </label>
+
+                <button
+                    className="app-button sm"
+                    disabled={!dirty}
+                    onClick={handleSave}
+                >
+                    💾 Сохранить
+                </button>
+
+                {/* ——————————————————————————————————— */}
+                <h3>Версии схемы</h3>
+                <div style={{ margin: '0.5rem 0' }}>
+                    <select
+                        className="form-input"
+                        value={selectedVersion || ''}
+                        onChange={async e => {
+                            const vid = Number(e.target.value);
+                            setSelectedVersion(vid);
+                            const schema = await getSchema(botId, vid);
+                            setNodes(schema.nodes || []);
+                            setEdges(schema.edges || []);
+                        }}
+                    >
+                        <option value="" disabled>
+                            Выберите версию…
+                        </option>
+                        {versions.map(v => (
+                            <option key={v.id} value={v.id}>
+                                {v.id} — {new Date(v.createdAt).toLocaleString()}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        className="app-button sm"
+                        style={{ marginLeft: 8 }}
+                        onClick={async () => {
+                            if (!selectedVersion) return;
+                            const schema = await getSchema(botId, selectedVersion);
+                            setNodes(schema.nodes || []);
+                            setEdges(schema.edges || []);
+                        }}
+                    >
+                        🔄 Загрузить
+                    </button>
+                </div>
+                {/* ——————————————————————————————————— */}
+
                 <h3>Типы нод</h3>
-                {Object.keys(nodeTypes).map(type => (
-                    <button key={type} className="app-button sm" onClick={() => addNode(type)}>{type}</button>
+                {['StartNode', 'TextNode', 'ActionNode', 'ButtonNode'].map(t => (
+                    <button
+                        key={t}
+                        className="app-button sm"
+                        onClick={() => addNode(t)}
+                    >
+                        {t}
+                    </button>
                 ))}
             </div>
+
             <div className="canvas-area">
                 <ReactFlowProvider>
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}
                         onNodesChange={onNodesChange}
-                        onEdgesChange={handleEdgesChange}
+                        onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
                         onEdgeDoubleClick={onEdgeDoubleClick}
                         onNodeDragStop={onNodeDragStop}
-                        nodeTypes={nodeTypes}
+                        nodeTypes={require.context('./nodes', false, /\.jsx$/)
+                            .keys()
+                            .reduce((acc, path) => {
+                                const name = path.replace('./', '').replace('.jsx', '');
+                                acc[name] = require('./nodes/' + path.replace('./', '')).default;
+                                return acc;
+                            }, {})}
                         fitView
                     >
                         <Background gap={16} />
                         <Controls />
                     </ReactFlow>
                 </ReactFlowProvider>
-                <h3>Текущая структура</h3>
-                <pre className="structure-output">{JSON.stringify({ nodes, edges }, null, 2)}</pre>
             </div>
         </div>
     );

@@ -1,113 +1,63 @@
-* {
-    box-sizing: border-box;
+/* clientapp/src/App.css */
+body, html, #root {
     margin: 0;
-    padding: 0;
+    height: 100%;
+    font-family: sans-serif;
 }
 
 .app-container {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 1rem;
-    height: 100vh;
-    padding: 1rem;
-    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100%;
     background: #f0f2f5;
 }
 
 .panel {
+    width: 240px;
     background: #fff;
-    padding: 1rem;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    border-right: 1px solid #e0e0e0;
+    padding: 16px;
+    box-shadow: 2px 0 6px rgba(0,0,0,0.05);
+    box-sizing: border-box;
     overflow-y: auto;
+}
+
+    .panel h2 {
+        margin-top: 0;
+    }
+
+.button-group {
+    margin-top: 8px;
 }
 
 .app-button {
     display: inline-block;
-    padding: 0.5rem 1rem;
-    background: #0069d9;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    padding: 6px 12px;
     font-size: 0.9rem;
-    margin-top: 0.5rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    background: #007bff;
+    color: #fff;
+    margin: 4px 2px 4px 0;
 }
-
-    .app-button:hover {
-        background: #0053ba;
-    }
 
     .app-button.outline {
         background: transparent;
-        color: #0069d9;
-        border: 1px solid #0069d9;
+        border: 1px solid #007bff;
+        color: #007bff;
     }
 
-        .app-button.outline:hover {
-            background: #e9f2fe;
-        }
-
-    .app-button.sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.8rem;
+    .app-button:disabled {
+        opacity: 0.5;
+        cursor: default;
     }
 
-    .app-button.danger {
-        background: #dc3545;
-    }
-
-        .app-button.danger:hover {
-            background: #c82333;
-        }
-
-.form-input,
-.form-textarea {
+.form-input, .form-textarea, .form-select {
     width: 100%;
-    padding: 0.5rem;
-    margin-top: 0.5rem;
-    border: 1px solid #ccc;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    font-size: 0.9rem;
     border-radius: 4px;
-}
-
-.form-textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-.filters {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-    .filters input[type="text"] {
-        flex: 1;
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    .filters label {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        font-size: 0.9rem;
-    }
-
-.error {
-    color: #dc3545;
-    margin: 1rem 0;
-    text-align: center;
-}
-
-.panel h2 {
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.editor-fullscreen {
-    padding: 1rem;
-    height: 100vh;
-    background: #f0f2f5;
+    border: 1px solid #ccc;
+    margin: 4px 0 12px 0;
 }
