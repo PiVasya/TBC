@@ -65,23 +65,21 @@ namespace TBC.Services
             _db.BotSchemas.Add(schemaEnt);
             await _db.SaveChangesAsync();
 
-            // 3) получаем код/проект/докер из запроса или шаблонов
-            var code = !string.IsNullOrWhiteSpace(req.BotCode)
-                        ? req.BotCode
-                        : File.ReadAllText(Path.Combine(_templatesPath, "BotCode.cs.tpl"));
-            var proj = !string.IsNullOrWhiteSpace(req.BotProj)
-                        ? req.BotProj
-                        : File.ReadAllText(Path.Combine(_templatesPath, "BotProj.csproj.tpl"));
-            var docker = !string.IsNullOrWhiteSpace(req.BotDocker)
-                        ? req.BotDocker
-                        : File.ReadAllText(Path.Combine(_templatesPath, "Dockerfile.tpl"));
+            // 3) передаём в билдёр либо пользовательский код, либо null
+            //    — билдёр сам подгрузит шаблоны и сделает Replace("{{TelegramToken}}", bot.Token)
+            string? code = string.IsNullOrWhiteSpace(req.BotCode) ? null : req.BotCode;
+            string? proj = string.IsNullOrWhiteSpace(req.BotProj) ? null : req.BotProj;
+            string? docker = string.IsNullOrWhiteSpace(req.BotDocker) ? null : req.BotDocker;
 
-            // 4) запускаем контейнер (этот блок оставлен без изменений)
+            // 4) запускаем контейнер
             try
             {
                 var containerId = await _builder.CreateAndRunBot(
-                    bot.Token, code, proj, docker);
-
+                    bot.Token,
+                    code,
+                    proj,
+                    docker
+                );
                 bot.ContainerId = containerId;
                 bot.Status = "Running";
             }
@@ -89,7 +87,6 @@ namespace TBC.Services
             {
                 bot.Status = "Error";
             }
-
             await _db.SaveChangesAsync();
 
             // 5) возвращаем DTO
@@ -102,6 +99,7 @@ namespace TBC.Services
                 bot.CreatedAt
             );
         }
+
 
         public async Task<BotDto?> UpdateAsync(int id, UpdateBotRequest req)
         {
@@ -133,6 +131,25 @@ namespace TBC.Services
                              .FirstOrDefaultAsync(x => x.Id == id);
             if (b is null) return null;
             return new BotDto(b.Id, b.Name, b.Token, b.ContainerId, b.Status, b.CreatedAt);
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var bot = await _db.BotInstances.FindAsync(id);
+            if (bot == null) return false;
+
+            // 1) Останавливаем и удаляем контейнер
+            if (!string.IsNullOrEmpty(bot.ContainerId))
+            {
+                try { await _builder.StopAndRemoveBot(bot.ContainerId); }
+                catch { /* логируем, но всё равно удаляем запись */ }
+            }
+
+            // 2) Удаляем запись (и схемы, если настроено каскадное удаление — проверьте FK)
+            _db.BotInstances.Remove(bot);
+            await _db.SaveChangesAsync();
+
+            return true;
         }
     }
 }

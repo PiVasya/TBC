@@ -8,6 +8,21 @@ import {
     MarkerType
 } from 'reactflow';
 
+export function attachCallbacks(rawNodes, setNodes, setEdges) {
+    return rawNodes.map(n => ({
+        ...n,
+        data: {
+            ...n.data,
+            onDelete: nid => {
+                console.log('[NodeEditor] onDelete node', nid);
+                setNodes(cur => cur.filter(x => x.id !== nid));
+                setEdges(cur => cur.filter(e => e.source !== nid && e.target !== nid));
+            },
+            onEdit: nid => console.log('[NodeEditor] onEdit node', nid),
+        }
+    }));
+}
+
 export default function useFlow() {
     const idRef = useRef(1);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -126,6 +141,7 @@ export default function useFlow() {
                 data: {
                     label: `${type} ${id}`,
                     onDelete: nid => {
+                        console.log('🔥 delete called for node', nid);
                         setNodes(n => n.filter(x => x.id !== nid));
                         setEdges(e => e.filter(x => x.source !== nid && x.target !== nid));
                     },

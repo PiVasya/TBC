@@ -1,0 +1,42 @@
+/* clientapp/src/BotList.css */
+
+/* общий стиль списка ботов */
+.bot-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* общий padding/margin для строки */
+.bot-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+}
+
+    /* отсутствует контейнер */
+    .bot-row.missing {
+        border-color: #dc3545; /* красная */
+        background: #ffe5e5;
+    }
+
+    /* контейнер есть, но не запущен */
+    .bot-row.stopped {
+        border-color: #fd7e14; /* оранжевая */
+        background: #fff4e5;
+    }
+
+    /* контейнер есть и запущен */
+    .bot-row.running {
+        border-color: #28a745; /* зелёная */
+        background: #e6f4ea;
+    }
+
+/* отступ между кнопками */
+.button-group button:not(:last-child) {
+    margin-right: 8px;
+}

@@ -15,7 +15,7 @@ import {
 export default function BotManager() {
     const [mode, setMode] = useState('list');      // 'list' | 'new' | 'edit'
     const [bots, setBots] = useState([]);
-    const [selected, setSelected] = useState(null); // выбранный BotDto
+    const [selected, setSelected] = useState(null);
     const [schema, setSchema] = useState({ nodes: [], edges: [] });
     const [name, setName] = useState('');
     const [token, setToken] = useState('');

@@ -1,4 +1,4 @@
-﻿namespace TBC.Services
+namespace TBC.Services
 {
     /// <summary>
     /// Интерфейс для сервиса, который собирает и запускает Docker-бота.
@@ -16,5 +16,7 @@
             string? botProj,
             string? botDocker
         );
+
+        Task StopAndRemoveBot(string containerId);
     }
 }

@@ -1,22 +1,35 @@
 // clientapp/src/App.jsx
 import React, { useState, useEffect } from 'react';
-import { listBots, getBot, createBot, updateBot, deleteBot } from './api/botApi';
+import {
+    listBots,
+    getBot,
+    createBot,
+    updateBot,
+    deleteBot
+} from './api/botApi';
+import { getContainers } from './api/containerApi';
 import NodeEditor from './components/NodeEditor';
 import './App.css';
+import './BotList.css';
 
 export default function App() {
     const [mode, setMode] = useState('list');  // 'list' | 'new' | 'edit'
     const [bots, setBots] = useState([]);
+    const [containers, setContainers] = useState([]);
     const [selected, setSelected] = useState(null);
 
     useEffect(() => {
-        fetchBots();
+        fetchData();
     }, []);
 
-    async function fetchBots() {
+    async function fetchData() {
         try {
-            const list = await listBots();
-            setBots(list);
+            const [botList, contList] = await Promise.all([
+                listBots(),
+                getContainers()
+            ]);
+            setBots(botList);
+            setContainers(contList);
         } catch (e) {
             alert('Ошибка загрузки: ' + e.message);
         }
@@ -42,16 +55,17 @@ export default function App() {
         if (!window.confirm(`Удалить "${bot.name}"?`)) return;
         try {
             await deleteBot(bot.id);
-            fetchBots();
+            await fetchData();
         } catch (e) {
             alert('Ошибка удаления: ' + e.message);
         }
     }
 
+    // Этот колбек теперь обязательно должен попасть в NodeEditor
     function onCreated(dto) {
         setSelected(dto);
         setMode('edit');
-        fetchBots();
+        fetchData();
     }
 
     return (
@@ -59,21 +73,44 @@ export default function App() {
             {mode === 'list' && (
                 <div className="panel">
                     <h2>Список ботов</h2>
-                    <button className="app-button sm" onClick={startNew}>+ Новый бот</button>
-                    <ul style={{ paddingLeft: 0, listStyle: 'none' }}>
-                        {bots.map(b => (
-                            <li key={b.id} style={{ margin: '8px 0' }}>
-                                <strong>{b.name}</strong> [{b.status}]
-                                <div className="button-group">
-                                    <button className="app-button sm" onClick={() => openEdit(b)}>Открыть</button>
-                                    <button className="app-button outline sm" onClick={() => remove(b)}>Удалить</button>
-                                </div>
-                            </li>
-                        ))}
+                    <button className="app-button sm" onClick={startNew}>
+                        + Новый бот
+                    </button>
+
+                    <ul className="bot-list">
+                        {bots.map(b => {
+                            const ctr = containers.find(c => c.id === b.containerId);
+                            let statusClass = 'bot-row missing';
+                            if (ctr) {
+                                statusClass = ctr.status === 'running'
+                                    ? 'bot-row running'
+                                    : 'bot-row stopped';
+                            }
+                            return (
+                                <li key={b.id} className={statusClass}>
+                                    <strong>{b.name}</strong>
+                                    <div className="button-group">
+                                        <button
+                                            className="app-button sm"
+                                            onClick={() => openEdit(b)}
+                                        >
+                                            Открыть
+                                        </button>
+                                        <button
+                                            className="app-button outline sm"
+                                            onClick={() => remove(b)}
+                                        >
+                                            Удалить
+                                        </button>
+                                    </div>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
             )}
 
+            {/* Рендерим редактор, когда создаём новый или редактируем */}
             {(mode === 'new' || (mode === 'edit' && selected)) && (
                 <div style={{ flex: 1 }}>
                     <NodeEditor

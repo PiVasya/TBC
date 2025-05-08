@@ -1,41 +1,80 @@
 // clientapp/src/components/NodeEditor.jsx
-import React, { useState, useEffect } from 'react';
-import ReactFlow, { ReactFlowProvider, Background, Controls } from 'reactflow';
+import React, { useState, useEffect, useCallback } from 'react';
+import ReactFlow, {
+    ReactFlowProvider,
+    Background,
+    Controls
+} from 'reactflow';
 import 'reactflow/dist/style.css';
 import './NodeEditor.css';
-import useFlow from '../hooks/useFlow';
+
+import useFlow, { attachCallbacks } from '../hooks/useFlow';
 import { listSchemas, getSchema, postSchema } from '../api/schemaApi';
 import { createBot, updateBot } from '../api/botApi';
 
+// Динамический импорт типов нод один раз
+const req = require.context('./nodes', false, /\.jsx$/);
+const nodeTypes = req.keys().reduce((acc, path) => {
+    const mod = req(path);
+    const name = path.replace('./', '').replace('.jsx', '');
+    acc[name] = mod.default;
+    return acc;
+}, {});
+
 export default function NodeEditor({
-    botId,               // если есть — редактируем, иначе — создаём
+    botId,
     initialName,
     initialToken,
     onBack,
-    onCreated           // callback(data: BotDto) при создании
+    onCreated
 }) {
     const [name, setName] = useState(initialName);
     const [token, setToken] = useState(initialToken);
     const [versions, setVersions] = useState([]);
     const [selectedVersion, setSelectedVersion] = useState(null);
+    const [dirty, setDirty] = useState(false);
 
-    const flow = useFlow();
+    // Хук для flow-логики
     const {
         nodes,
         edges,
-        onNodesChange,
-        onEdgesChange,
-        onConnect,
-        onEdgeDoubleClick,
-        onNodeDragStop,
+        onNodesChange: rawOnNodesChange,
+        onEdgesChange: rawOnEdgesChange,
+        onConnect: rawOnConnect,
+        onEdgeDoubleClick: rawOnEdgeDoubleClick,
+        onNodeDragStop: rawOnNodeDragStop,
         addNode,
         setNodes,
         setEdges
-    } = flow;
+    } = useFlow();
 
-    const [dirty, setDirty] = useState(false);
+    // Обёртки с логированием
+    const onNodesChange = useCallback(changes => {
+        console.log('[NodeEditor] onNodesChange:', changes);
+        rawOnNodesChange(changes);
+    }, [rawOnNodesChange]);
 
-    // определяем «грязность»: любое изменение полей или схемы
+    const onEdgesChange = useCallback(changes => {
+        console.log('[NodeEditor] onEdgesChange:', changes);
+        rawOnEdgesChange(changes);
+    }, [rawOnEdgesChange]);
+
+    const onConnect = useCallback(params => {
+        console.log('[NodeEditor] onConnect:', params);
+        rawOnConnect(params);
+    }, [rawOnConnect]);
+
+    const onEdgeDoubleClick = useCallback((event, edge) => {
+        console.log('[NodeEditor] onEdgeDoubleClick:', edge);
+        rawOnEdgeDoubleClick(event, edge);
+    }, [rawOnEdgeDoubleClick]);
+
+    const onNodeDragStop = useCallback((event, node) => {
+        console.log('[NodeEditor] onNodeDragStop:', node);
+        rawOnNodeDragStop(event, node);
+    }, [rawOnNodeDragStop]);
+
+    // «Грязность» формы
     useEffect(() => {
         const schemaChanged =
             JSON.stringify({ nodes, edges }) !== JSON.stringify({ nodes: [], edges: [] });
@@ -46,45 +85,52 @@ export default function NodeEditor({
         );
     }, [name, token, nodes, edges, initialName, initialToken]);
 
+    // Загрузка версий схемы
     useEffect(() => {
         if (!botId) return;
         (async () => {
-            // 1) получить список версий
+            console.log('[NodeEditor] fetching schema versions for bot', botId);
             const vs = await listSchemas(botId);
             setVersions(vs);
-            if (vs.length === 0) return;
+            if (!vs.length) return;
 
-            // 2) сразу выбрать самую первую (самую свежую) версию
             const latest = vs[0];
             setSelectedVersion(latest.id);
+            console.log('[NodeEditor] loading latest schema id', latest.id);
 
-            // 3) и загрузить по ней схему
             const schema = await getSchema(botId, latest.id);
-            setNodes(schema.nodes || []);
+            setNodes(
+                (schema.nodes || []).map(n => ({
+                    ...n,
+                    data: {
+                        ...n.data,
+                        onDelete: nid => {
+                            console.log('[NodeEditor] onDelete node', nid);
+                            setNodes(cur => cur.filter(x => x.id !== nid));
+                            setEdges(cur => cur.filter(e => e.source !== nid && e.target !== nid));
+                        },
+                        onEdit: nid => console.log('[NodeEditor] onEdit node', nid)
+                    }
+                }))
+            );
             setEdges(schema.edges || []);
-
         })();
     }, [botId, setNodes, setEdges]);
 
+    // Сохранение
     const handleSave = async () => {
         if (!dirty) return;
-
+        console.log('[NodeEditor] saving, dirty=', dirty);
         if (!botId) {
-            // создание нового бота вместе со схемой
-            const dto = await createBot({
-                name,
-                telegramToken: token,
-                schema: { nodes, edges }
-            });
+            const dto = await createBot({ name, telegramToken: token, schema: { nodes, edges } });
+            console.log('[NodeEditor] created bot', dto);
             onCreated(dto);
         } else {
-            // обновить имя и токен существующего бота
             await updateBot(botId, { name, telegramToken: token });
-            // сохранить новую версию схемы
             await postSchema(botId, { nodes, edges });
             alert('Изменения сохранены');
+            console.log('[NodeEditor] updated bot & posted schema');
         }
-
         setDirty(false);
     };
 
@@ -123,7 +169,6 @@ export default function NodeEditor({
                     💾 Сохранить
                 </button>
 
-                {/* ——————————————————————————————————— */}
                 <h3>Версии схемы</h3>
                 <div style={{ margin: '0.5rem 0' }}>
                     <select
@@ -131,15 +176,14 @@ export default function NodeEditor({
                         value={selectedVersion || ''}
                         onChange={async e => {
                             const vid = Number(e.target.value);
+                            console.log('[NodeEditor] switching to version', vid);
                             setSelectedVersion(vid);
                             const schema = await getSchema(botId, vid);
-                            setNodes(schema.nodes || []);
+                            setNodes(attachCallbacks(schema.nodes || []));
                             setEdges(schema.edges || []);
                         }}
                     >
-                        <option value="" disabled>
-                            Выберите версию…
-                        </option>
+                        <option value="" disabled>Выберите версию…</option>
                         {versions.map(v => (
                             <option key={v.id} value={v.id}>
                                 {v.id} — {new Date(v.createdAt).toLocaleString()}
@@ -151,22 +195,25 @@ export default function NodeEditor({
                         style={{ marginLeft: 8 }}
                         onClick={async () => {
                             if (!selectedVersion) return;
+                            console.log('[NodeEditor] reloading version', selectedVersion);
                             const schema = await getSchema(botId, selectedVersion);
-                            setNodes(schema.nodes || []);
+                            setNodes(attachCallbacks(schema.nodes || []));
                             setEdges(schema.edges || []);
                         }}
                     >
                         🔄 Загрузить
                     </button>
                 </div>
-                {/* ——————————————————————————————————— */}
 
                 <h3>Типы нод</h3>
-                {['StartNode', 'TextNode', 'ActionNode', 'ButtonNode'].map(t => (
+                {Object.keys(nodeTypes).map(t => (
                     <button
                         key={t}
                         className="app-button sm"
-                        onClick={() => addNode(t)}
+                        onClick={() => {
+                            console.log('[NodeEditor] addNode', t);
+                            addNode(t);
+                        }}
                     >
                         {t}
                     </button>
@@ -183,13 +230,7 @@ export default function NodeEditor({
                         onConnect={onConnect}
                         onEdgeDoubleClick={onEdgeDoubleClick}
                         onNodeDragStop={onNodeDragStop}
-                        nodeTypes={require.context('./nodes', false, /\.jsx$/)
-                            .keys()
-                            .reduce((acc, path) => {
-                                const name = path.replace('./', '').replace('.jsx', '');
-                                acc[name] = require('./nodes/' + path.replace('./', '')).default;
-                                return acc;
-                            }, {})}
+                        nodeTypes={nodeTypes}
                         fitView
                     >
                         <Background gap={16} />

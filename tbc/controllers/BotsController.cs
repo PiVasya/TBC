@@ -46,5 +46,13 @@ namespace TBC.Controllers
             var dto = await _botService.UpdateAsync(id, req);
             return dto is null ? NotFound() : Ok(dto);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var deleted = await _botService.DeleteAsync(id);
+            if (!deleted) return NotFound(new { message = $"Bot with id={id} not found" });
+            return NoContent(); // 204
+        }
     }
 }
