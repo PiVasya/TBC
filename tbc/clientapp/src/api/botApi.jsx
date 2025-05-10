@@ -67,3 +67,43 @@ export async function getBot(id) {
     }
     return res.json(); // вернёт BotDto с полем telegramToken
 }
+
+export async function startBot(id) {
+    const res = await fetch(`${BASE}/${id}/start`, { method: 'POST' });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || res.statusText);
+    }
+    // если нет контента — просто выходим
+    if (res.status === 204) return;
+    return res.json();
+}
+
+/**
+ * Остановить контейнер бота
+ */
+export async function stopBot(id) {
+    const res = await fetch(`${BASE}/${id}/stop`, { method: 'POST' });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || res.statusText);
+    }
+    if (res.status === 204) return;
+    return res.json();
+}
+
+/**
+ * Пересобрать (rebuild) контейнер бота
+ */
+export async function rebuildBot(id, { name, telegramToken }) {
+    const res = await fetch(`${BASE}/${id}/rebuild`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, telegramToken })
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || res.statusText);
+    }
+    return res.json();
+}
