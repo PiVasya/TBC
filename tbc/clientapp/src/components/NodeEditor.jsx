@@ -2,13 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import ReactFlow, { ReactFlowProvider, Background, Controls } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './NodeEditor.css';
-
-import useFlow from '../hooks/useFlow';
+import useFlow, { attachCallbacks } from '../hooks/useFlow';
 import { listSchemas, getSchema, postSchema } from '../api/schemaApi';
 import { createBot, rebuildBot } from '../api/botApi';
-import NodeSettingsPanel from './NodeSettingsPanel';
+import NodeSettingsPanel from './InlineNodeEditor';
 
-// динамический импорт всех видов нод
 const req = require.context('./nodes', false, /\.jsx$/);
 const nodeTypes = req.keys().reduce((acc, path) => {
     const mod = req(path);
@@ -30,10 +28,8 @@ export default function NodeEditor({
     const [versions, setVersions] = useState([]);
     const [selectedVersion, setSelectedVersion] = useState(null);
     const [dirty, setDirty] = useState(false);
-
     const [editingNode, setEditingNode] = useState(null);
 
-    // ReactFlow hook
     const {
         nodes,
         edges,
@@ -47,7 +43,6 @@ export default function NodeEditor({
         setEdges
     } = useFlow();
 
-    // helper: «обогащаем» узел двумя колбэками
     const enrichNode = useCallback(n => ({
         ...n,
         data: {
@@ -60,18 +55,16 @@ export default function NodeEditor({
         }
     }), [setNodes, setEdges]);
 
-    // dirty-флаг
     useEffect(() => {
-        const schemaChanged =
+        const changed =
             JSON.stringify({ nodes, edges }) !== JSON.stringify({ nodes: [], edges: [] });
         setDirty(
             name !== initialName ||
             token !== initialToken ||
-            schemaChanged
+            changed
         );
     }, [name, token, nodes, edges, initialName, initialToken]);
 
-    // 1) Загрузка списка версий и последней схемы — **только** при смене botId
     useEffect(() => {
         if (!botId) return;
         (async () => {
@@ -83,12 +76,11 @@ export default function NodeEditor({
             setSelectedVersion(latest.id);
 
             const schema = await getSchema(botId, latest.id);
-            setNodes(schema.nodes.map(enrichNode));
+            setNodes(attachCallbacks(schema.nodes || [], setNodes, setEdges));
             setEdges(schema.edges);
         })();
     }, [botId, enrichNode, setNodes, setEdges]);
 
-    // сохранение
     const handleSave = async () => {
         if (!dirty) return;
         if (!botId) {
@@ -123,19 +115,19 @@ export default function NodeEditor({
                         className="form-input"
                         value={selectedVersion || ''}
                         onChange={async e => {
-                            const vid = Number(e.target.value);
+                            const vid = +e.target.value;
                             setSelectedVersion(vid);
                             const schema = await getSchema(botId, vid);
-                            setNodes(schema.nodes.map(enrichNode));
+                            setNodes(attachCallbacks(schema.nodes || [], setNodes, setEdges));
                             setEdges(schema.edges);
                         }}
                     >
                         <option value="" disabled>Выберите…</option>
-                        {versions.map(v => (
+                        {versions.map(v =>
                             <option key={v.id} value={v.id}>
                                 {v.id} — {new Date(v.createdAt).toLocaleString()}
                             </option>
-                        ))}
+                        )}
                     </select>
                     <button
                         className="app-button sm"
@@ -143,20 +135,20 @@ export default function NodeEditor({
                         onClick={async () => {
                             if (!selectedVersion) return;
                             const schema = await getSchema(botId, selectedVersion);
-                            setNodes(schema.nodes.map(enrichNode));
+                            setNodes(attachCallbacks(schema.nodes || [], setNodes, setEdges));
                             setEdges(schema.edges);
                         }}
                     >🔄 Загрузить</button>
                 </div>
 
                 <h3>Типы нод</h3>
-                {Object.keys(nodeTypes).map(t => (
+                {Object.keys(nodeTypes).map(t =>
                     <button
                         key={t}
                         className="app-button sm"
                         onClick={() => addNode(t)}
                     >{t}</button>
-                ))}
+                )}
             </div>
 
             <div className="canvas-area">

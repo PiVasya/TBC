@@ -14,14 +14,21 @@ export function attachCallbacks(rawNodes, setNodes, setEdges) {
         data: {
             ...n.data,
             onDelete: nid => {
-                console.log('[NodeEditor] onDelete node', nid);
-                setNodes(cur => cur.filter(x => x.id !== nid));
-                setEdges(cur => cur.filter(e => e.source !== nid && e.target !== nid));
+                setNodes(xs => xs.filter(x => x.id !== nid));
+                setEdges(es => es.filter(e => e.source !== nid && e.target !== nid));
             },
-            onEdit: nid => console.log('[NodeEditor] onEdit node', nid),
+            onSave: (nid, upd) => {
+                setNodes(xs =>
+                    xs.map(x => x.id === nid ? {
+                        ...x,
+                        data: { ...x.data, ...upd }
+                    } : x)
+                );
+            }
         }
     }));
 }
+
 
 export default function useFlow() {
     const idRef = useRef(1);
@@ -140,14 +147,27 @@ export default function useFlow() {
                 type,
                 data: {
                     label: `${type} ${id}`,
+                    // дефолтное поле для команды у StartNode
+                    ...(type === 'StartNode' ? { command: '' } : {}),
                     onDelete: nid => {
-                        console.log('🔥 delete called for node', nid);
                         setNodes(n => n.filter(x => x.id !== nid));
                         setEdges(e => e.filter(x => x.source !== nid && x.target !== nid));
                     },
-                    onEdit: nid => console.log('edit', nid)
+                    onEdit: nid => console.log('edit', nid),
+                    onSave: (nid, upd) => {
+                        setNodes(xs =>
+                            xs.map(x =>
+                                x.id === nid
+                                    ? { ...x, data: { ...x.data, ...upd } }
+                                    : x
+                            )
+                        );
+                    }
                 },
-                position: { x: (nds.length % 3) * offset + 50, y: Math.floor(nds.length / 3) * offset + 50 }
+                position: {
+                    x: (nds.length % 3) * offset + 50,
+                    y: Math.floor(nds.length / 3) * offset + 50
+                }
             }
         ]);
     }, [setNodes, setEdges]);

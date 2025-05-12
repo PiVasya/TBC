@@ -1,0 +1,28 @@
+/* src/components/InlineNodeEditor.css */
+.inline-editor {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 8px;
+    z-index: 10;
+    width: 200px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+    .inline-editor .field {
+        margin-bottom: 6px;
+    }
+
+        .inline-editor .field label {
+            display: block;
+            font-size: 0.8rem;
+            margin-bottom: 2px;
+        }
+
+    .inline-editor .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 4px;
+    }
