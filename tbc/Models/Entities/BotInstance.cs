@@ -11,7 +11,7 @@ namespace TBC.Models.Entities
         public string Token { get; set; } = null!;
         public string Status { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
-        
+
 
 
         // navigation

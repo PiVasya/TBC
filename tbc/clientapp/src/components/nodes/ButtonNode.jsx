@@ -28,7 +28,7 @@ export default function ButtonNode({ id, data }) {
         <div className="custom-node button-node" style={{ position: 'relative' }}>
             <div className="node-header">
                 {/* Только значок или статичная надпись */}
-                <span>🔘 Button</span>
+                <span>🔘</span>
                 <div className="node-actions">
                     <button onClick={() => setEditing(true)}>✎</button>
                     <button onClick={() => data.onDelete(id)}>✕</button>

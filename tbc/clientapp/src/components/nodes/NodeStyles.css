@@ -80,3 +80,25 @@
     border-radius: 4px;
     background: #e6f4ea;
 }
+.custom-node.ban-node {
+    border-color: #dc3545; /* красная рамка для бана */
+}
+.custom-node.delete-message-node {
+    border-color: #dc3545; /* красная рамка для удаления сообщения */
+}
+/* оранжевая рамка для фильтра */
+.custom-node.keyword-filter-node {
+    border-color: #fd7e14;
+}
+/* превью списка слов */
+.filter-preview {
+    margin: 4px 0;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    max-height: 3em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.custom-node.delay-node {
+    border-color: #17a2b8; /* любой цвет по вкусу */
+}

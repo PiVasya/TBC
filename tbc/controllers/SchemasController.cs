@@ -14,8 +14,7 @@ namespace TBC.Controllers
         private readonly AppDbContext _db;
         public SchemasController(AppDbContext db) => _db = db;
 
-        // GET api/bots/5/schemas
-        // возвращает [{ id, createdAt }, ...]
+        // GET api/bots/schemas
         [HttpGet]
         public async Task<IActionResult> ListSchemas(int botId)
         {
@@ -35,7 +34,7 @@ namespace TBC.Controllers
             return Ok(list);
         }
 
-        // GET api/bots/5/schemas/42
+        // GET api/bots/schemas/
         // отдаёт чисто JSON схемы
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetSchema(int botId, int id)
@@ -50,7 +49,7 @@ namespace TBC.Controllers
             return Content(schema.Content, "application/json");
         }
 
-        // POST api/bots/5/schemas
+        // POST api/bots/schemas
         // сохраняет новую схему
         [HttpPost]
         public async Task<IActionResult> PostSchema(
