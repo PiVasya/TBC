@@ -11,6 +11,8 @@ export default function TextNode({ id, data }) {
         { name: 'label', label: 'Текст ноды', type: 'textarea' },
         { name: 'saveToDb', label: 'Сохранять в БД', type: 'checkbox' },
         { name: 'notifyAdmin', label: 'Уведомить админа', type: 'checkbox' },
+        { name: 'delete', label: 'Удалить сообщение', type: 'checkbox' },
+        { name: 'duration', label: 'Задержка удаления(сек)', type: 'text' },
     ];
 
     const handleSave = upd => {

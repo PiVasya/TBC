@@ -1,46 +1,28 @@
-// clientapp/src/components/nodes/ActionNode.jsx
+// src/components/nodes/QuestionNode.jsx
 import React, { useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import InlineNodeEditor from '../InlineNodeEditor';
 import './NodeStyles.css';
 
-export default function ActionNode({ id, data }) {
+export default function QuestionNode({ id, data }) {
     const [editing, setEditing] = useState(false);
 
-    // Описание полей, которые можно редактировать
     const schemaFields = [
-        {
-            name: 'label',
-            label: 'Название действия',
-            type: 'text'
-        },
-        {
-            name: 'saveToDb',
-            label: 'Сохранять ответ в БД',
-            type: 'checkbox'
-        },
-        {
-            name: 'notifyAdmin',
-            label: 'Уведомить админа',
-            type: 'checkbox'
-        },
-        {
-            name: 'delete',
-            label: 'Удалить после выбора',
-            type: 'checkbox'
-        },
+        { name: 'label', label: 'Текст ноды', type: 'textarea' },
+        { name: 'saveToDb', label: 'Сохранять в БД', type: 'checkbox' },
+        { name: 'notifyAdmin', label: 'Уведомить админа', type: 'checkbox' },
+        { name: 'delete', label: 'Удалить сообщение', type: 'checkbox' },
     ];
 
-    // Сохраняем изменения через data.onSave и закрываем панель
     const handleSave = upd => {
         data.onSave(id, upd);
         setEditing(false);
     };
 
     return (
-        <div className="custom-node action-node" style={{ position: 'relative' }}>
+        <div className="custom-node question-node" style={{ position: 'relative' }}>
             <div className="node-header">
-                <span>🔔 {data.label || 'Actions'}</span>
+                <span>📝 {data.label || 'Text'}</span>
                 <div className="node-actions">
                     <button onClick={() => setEditing(true)}>✎</button>
                     <button onClick={() => data.onDelete(id)}>✕</button>
@@ -58,16 +40,15 @@ export default function ActionNode({ id, data }) {
 
             <Handle
                 type="target"
-                id="in"
                 position={Position.Left}
+                id="in"
                 style={{ background: '#555' }}
             />
             <Handle
                 type="source"
-                id="bottom"
-                position={Position.Bottom}
-                className="rect-handle"
-                isConnectable={false}
+                position={Position.Right}
+                id="out"
+                style={{ background: '#555' }}
             />
         </div>
     );

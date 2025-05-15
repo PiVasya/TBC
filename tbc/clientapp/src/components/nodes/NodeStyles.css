@@ -102,3 +102,6 @@
 .custom-node.delay-node {
     border-color: #17a2b8; /* любой цвет по вкусу */
 }
+.custom-node.question-node {
+    border-color: #c925a5; /* любой цвет по вкусу */
+}
