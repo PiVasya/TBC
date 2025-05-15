@@ -1,0 +1,107 @@
+/* clientapp/src/components/nodes/NodeStyles.css */
+
+/* общий контейнер всех кастомных нод */
+.custom-node {
+    width: 200px;
+    min-height: 40px;
+    background: #fff; /* белый фон */
+    border: 1px solid; /* базовая рамка */
+    border-radius: 4px; /* скругления */
+    padding: 8px; /* внутренние отступы */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+    /* цвет рамки для каждого типа */
+    .custom-node.start-node {
+        border-color: #28a745;
+    }
+
+    .custom-node.text-node {
+        border-color: #17a2b8;
+    }
+
+    .custom-node.action-node {
+        border-color: #ffc107;
+    }
+
+    .custom-node.button-node {
+        border-color: #6f42c1;
+    }
+
+/* заголовок */
+.node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px; /* чуть отступа от содержимого */
+}
+
+/* кнопки в заголовке */
+.node-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 4px;
+    font-size: 0.85rem;
+}
+
+/* прямоугольные “rect-handle” */
+.react-flow__handle.rect-handle {
+    background: #555;
+    width: 16px;
+    height: 4px;
+    border-radius: 2px;
+}
+
+    .react-flow__handle.rect-handle.react-flow__handle-top,
+    .react-flow__handle.rect-handle.react-flow__handle-bottom {
+        transform: translateX(-50%);
+    }
+
+    .react-flow__handle.rect-handle.react-flow__handle-left,
+    .react-flow__handle.rect-handle.react-flow__handle-right {
+        transform: translateY(-50%);
+    }
+
+.button-preview.inline {
+    display: inline-block;
+    margin: 8px 0;
+    padding: 4px 8px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    background: #e7f1ff;
+}
+
+.button-preview.block {
+    display: block;
+    margin: 8px 0;
+    padding: 8px;
+    border: 1px solid #28a745;
+    border-radius: 4px;
+    background: #e6f4ea;
+}
+.custom-node.ban-node {
+    border-color: #dc3545; /* красная рамка для бана */
+}
+.custom-node.delete-message-node {
+    border-color: #dc3545; /* красная рамка для удаления сообщения */
+}
+/* оранжевая рамка для фильтра */
+.custom-node.keyword-filter-node {
+    border-color: #fd7e14;
+}
+/* превью списка слов */
+.filter-preview {
+    margin: 4px 0;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    max-height: 3em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.custom-node.delay-node {
+    border-color: #17a2b8; /* любой цвет по вкусу */
+}
+.custom-node.question-node {
+    border-color: #c925a5; /* любой цвет по вкусу */
+}

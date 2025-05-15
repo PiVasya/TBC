@@ -1,87 +1,112 @@
-﻿using System.Diagnostics;    // для ProjCs, BotCs, DockerCs
-using TBC.Services;      // для IDockerBotBuilder
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 
 namespace TBC.Services
 {
     public class DockerBotBuilder : IDockerBotBuilder
     {
         private readonly string _tmplDir;
+        private readonly string _networkName;
 
         public DockerBotBuilder(IWebHostEnvironment env)
         {
-            // Templates лежат в корне контента приложения
             _tmplDir = Path.Combine(env.ContentRootPath, "Templates");
+            Console.WriteLine($"[DockerBotBuilder] Templates directory: {_tmplDir}");
+
+            // Попытка взять имя проекта из среды, иначе жёстко прописать:
+            var composeProject =
+                Environment.GetEnvironmentVariable("COMPOSE_PROJECT_NAME")
+                ?? "tbc";
+            _networkName = $"{composeProject}_default";
+            Console.WriteLine($"[DockerBotBuilder] Using compose network: {_networkName}");
         }
 
         public async Task<string> CreateAndRunBot(
             string telegramToken,
-            string botCode,
-            string botProj,
-            string botDocker)
+            string? botCode,
+            string? botProj,
+            string? botDocker)
         {
-            // 1. Путь для файлов
+            Console.WriteLine($"[DockerBotBuilder] CreateAndRunBot start, token={telegramToken}");
+
+            // 1. Папка для проекта
             string folderName = "bot_" + Guid.NewGuid().ToString("N");
             string basePath = Path.Combine("/tmp", folderName);
             Directory.CreateDirectory(basePath);
+            Console.WriteLine($"[DockerBotBuilder] Working dir: {basePath}");
 
-            // 2. Загружаем и сохраняем csproj
-            string projTemplate = File.ReadAllText(Path.Combine(_tmplDir, "BotProj.csproj.tpl"));
-            string projText = string.IsNullOrWhiteSpace(botProj)
-                ? projTemplate
-                : botProj;
-            File.WriteAllText(Path.Combine(basePath, "BotCode.csproj"), projText);
+            // 2. csproj
+            var projTpl = File.ReadAllText(Path.Combine(_tmplDir, "BotProj.csproj.tpl"));
+            var projText = string.IsNullOrWhiteSpace(botProj) ? projTpl : botProj;
+            var projPath = Path.Combine(basePath, "BotCode.csproj");
+            File.WriteAllText(projPath, projText);
+            Console.WriteLine($"[DockerBotBuilder] Wrote csproj to {projPath}");
 
-            // 3. Загружаем и сохраняем Program.cs
-            string codeTemplate = File.ReadAllText(Path.Combine(_tmplDir, "BotCode.cs.tpl"));
-            // Подставляем {{TelegramToken}} в шаблон
-            codeTemplate = codeTemplate.Replace("{{TelegramToken}}", telegramToken);
-            string codeText = string.IsNullOrWhiteSpace(botCode)
-                ? codeTemplate
-                : botCode;
-            File.WriteAllText(Path.Combine(basePath, "Program.cs"), codeText);
+            // 3. Program.cs с подстановкой токена
+            var codeTpl = File.ReadAllText(Path.Combine(_tmplDir, "BotCode.cs.tpl"));
+            codeTpl = codeTpl.Replace("{{TelegramToken}}", telegramToken);
+            var codeText = string.IsNullOrWhiteSpace(botCode) ? codeTpl : botCode;
+            var codePath = Path.Combine(basePath, "Program.cs");
+            File.WriteAllText(codePath, codeText);
+            Console.WriteLine($"[DockerBotBuilder] Wrote Program.cs to {codePath}");
 
-            // 4. Загружаем и сохраняем Dockerfile
-            string dockerTemplate = File.ReadAllText(Path.Combine(_tmplDir, "Dockerfile.tpl"));
-            string dockerText = string.IsNullOrWhiteSpace(botDocker)
-                ? dockerTemplate
-                : botDocker;
-            File.WriteAllText(Path.Combine(basePath, "Dockerfile"), dockerText);
+            // 4. Dockerfile
+            var dockerTpl = File.ReadAllText(Path.Combine(_tmplDir, "Dockerfile.tpl"));
+            var dockerText = string.IsNullOrWhiteSpace(botDocker) ? dockerTpl : botDocker;
+            var dfPath = Path.Combine(basePath, "Dockerfile");
+            File.WriteAllText(dfPath, dockerText);
+            Console.WriteLine($"[DockerBotBuilder] Wrote Dockerfile to {dfPath}");
 
-            // 5. Формируем imageTag
+            // 5. Тэг образа
             string imageTag = $"bot_{Guid.NewGuid():N}";
+            Console.WriteLine($"[DockerBotBuilder] Image tag = {imageTag}");
 
-            // 6. Собираем образ
-            await RunProcessOrThrow("docker",
-                $"build -t {imageTag} {basePath}");
+            // 6. Сборка Docker-образа
+            Console.WriteLine($"[DockerBotBuilder] Building image…");
+            var buildOut = await RunProcessOrThrow("docker", $"build -t {imageTag} {basePath}");
+            Console.WriteLine($"[DockerBotBuilder] Build output:\n{buildOut}");
 
-            // 7. Запускаем контейнер
-            string containerId =
-                (await RunProcessOrThrow("docker",
-                  $"run -d --name {imageTag} {imageTag}"))
-                .Trim();
+            // 7. Запуск контейнера в сети Compose
+            Console.WriteLine($"[DockerBotBuilder] Running container in network '{_networkName}'…");
+            var runOut = await RunProcessOrThrow(
+                "docker",
+                $"run -d --name {imageTag} --network {_networkName} {imageTag}"
+            );
+            var containerId = runOut.Trim();
+            Console.WriteLine($"[DockerBotBuilder] Run output (containerId): {containerId}");
 
             return containerId;
         }
 
-        private static async Task<string> RunProcessOrThrow(
-            string fileName, string arguments)
+        public async Task StopAndRemoveBot(string containerId)
         {
+            Console.WriteLine($"[DockerBotBuilder] Stopping container {containerId}");
+            await RunProcessOrThrow("docker", $"stop {containerId}");
+            Console.WriteLine($"[DockerBotBuilder] Removing container {containerId}");
+            await RunProcessOrThrow("docker", $"rm {containerId}");
+        }
+
+        private static async Task<string> RunProcessOrThrow(string fileName, string arguments)
+        {
+            Console.WriteLine($"[DockerBotBuilder] >>> {fileName} {arguments}");
             var psi = new ProcessStartInfo(fileName, arguments)
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false
             };
-            var proc = Process.Start(psi)!;
-            string outp = await proc.StandardOutput.ReadToEndAsync();
-            string err = await proc.StandardError.ReadToEndAsync();
+            using var proc = Process.Start(psi)!;
+            var outp = await proc.StandardOutput.ReadToEndAsync();
+            var err = await proc.StandardError.ReadToEndAsync();
             proc.WaitForExit();
-
+            Console.WriteLine($"[DockerBotBuilder] <<< exitCode={proc.ExitCode}");
+            if (!string.IsNullOrEmpty(outp)) Console.WriteLine($"[DockerBotBuilder] STDOUT:\n{outp}");
+            if (!string.IsNullOrEmpty(err)) Console.WriteLine($"[DockerBotBuilder] STDERR:\n{err}");
             if (proc.ExitCode != 0)
-                throw new Exception(
-                    $"{fileName} {arguments} завершился с кодом {proc.ExitCode}:\n{err}"
-                );
-
+                throw new Exception($"{fileName} {arguments} failed with code {proc.ExitCode}");
             return outp;
         }
     }

@@ -1,0 +1,26 @@
+/* clientapp/src/components/NodeEditor.css */
+.node-editor-container {
+    display: flex;
+    height: 100%;
+}
+
+.sidebar {
+    width: 240px;
+    background: #fff;
+    padding: 16px;
+    border-right: 1px solid #e0e0e0;
+    box-shadow: 2px 0 6px rgba(0,0,0,0.05);
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.canvas-area {
+    flex: 1;
+    position: relative;
+    padding: 16px;
+    background: #fafafa;
+}
+
+.structure-output {
+    display: none; /* скрыли отладочный JSON */
+}

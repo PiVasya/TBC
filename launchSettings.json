@@ -4,7 +4,8 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "tbc": "StartDebugging"
+        "api": "StartDebugging",
+        "frontend": "StartDebugging"
       }
     }
   }
