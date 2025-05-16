@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +11,7 @@ using TBC.Data;
 using TBC.Models.DTO;
 using TBC.Models.Entities;
 using TBC.Models.Requests;
+using TBC.Services.CodeGen;
 
 namespace TBC.Services
 {
@@ -155,58 +158,90 @@ namespace TBC.Services
             string? userDocker,
             string initialStatus)
         {
+            Console.WriteLine($"[BotService] === RestartContainerAsync start for BotId={bot.Id} ===");
+            Console.WriteLine($"[BotService] templatesPath = {_templatesPath}");
+
             // 1) остановить старый контейнер
             if (!string.IsNullOrEmpty(bot.ContainerId))
             {
+                Console.WriteLine($"[BotService] Stopping old container: {bot.ContainerId}");
                 try { await _builder.StopAndRemoveBot(bot.ContainerId); }
-                catch { /* лог */ }
+                catch (Exception ex) { Console.WriteLine($"[BotService] WARNING: StopAndRemove failed: {ex.Message}"); }
                 bot.ContainerId = null;
             }
 
+            // 2) пометить статус
             bot.Status = initialStatus;
             await _db.SaveChangesAsync();
+            Console.WriteLine($"[BotService] Status set to '{initialStatus}' in DB");
 
-            // 2) подготовить шаблоны
-            var (code, proj, docker) = PrepareTemplates(bot.Token, userCode, userProj, userDocker);
+            // 3) загрузить схему
+            var schemaJson = await _db.BotSchemas
+                .AsNoTracking()
+                .Where(s => s.BotInstanceId == bot.Id)
+                .OrderByDescending(s => s.CreatedAt)
+                .Select(s => s.Content)
+                .FirstOrDefaultAsync()
+                ?? throw new InvalidOperationException("Schema not found");
+            Console.WriteLine($"[BotService] Loaded schema JSON length={schemaJson.Length}");
 
-            // 3) собрать и запустить
+            // 4) очистить схему
+            var root = JToken.Parse(schemaJson);
+            var clean = new JObject(
+                new JProperty("nodes", new JArray(root["nodes"]!
+                    .Select(n => new JObject(
+                        new JProperty("id", n["id"]!),
+                        new JProperty("type", n["type"]!),
+                        new JProperty("data", n["data"]!)
+                    )))),
+                new JProperty("edges", new JArray(root["edges"]!
+                    .Select(e => new JObject(
+                        new JProperty("source", e["source"]!),
+                        new JProperty("target", e["target"]!)
+                    ))))
+            );
+            var cleanJson = clean.ToString(Formatting.None);
+            Console.WriteLine($"[BotService] Clean JSON length={cleanJson.Length}");
+
+            // 5) генерируем код
+            Console.WriteLine($"[BotService] Calling SchemaCodeGenerator.GenerateCode...");
+            var (generatedCode, generatedProj, generatedDocker) =
+                SchemaCodeGenerator.GenerateCode(
+                    schemaJson: cleanJson,
+                    telegramToken: bot.Token,
+                    adminChatId: 1202503239L,
+                    templatesPath: _templatesPath);
+            Console.WriteLine($"[BotService] GeneratedCode length={generatedCode.Length}");
+            Console.WriteLine($"[BotService] GeneratedProj length={generatedProj.Length}");
+            Console.WriteLine($"[BotService] GeneratedDocker length={generatedDocker.Length}");
+
+            // 6) что пойдёт в контейнер
+            var codeToUse = string.IsNullOrWhiteSpace(userCode) ? generatedCode : userCode!;
+            var projToUse = string.IsNullOrWhiteSpace(userProj) ? generatedProj : userProj!;
+            var dockerToUse = string.IsNullOrWhiteSpace(userDocker) ? generatedDocker : userDocker!;
+            Console.WriteLine($"[BotService] Final code length={codeToUse.Length}, proj length={projToUse.Length}, docker length={dockerToUse.Length}");
+
+            // 7) билд и запуск
             try
             {
-                var newId = await _builder.CreateAndRunBot(bot.Token, code, proj, docker);
+                Console.WriteLine($"[BotService] Invoking DockerBotBuilder.CreateAndRunBot...");
+                var newId = await _builder.CreateAndRunBot(
+                    bot.Token,
+                    botCode: codeToUse,
+                    botProj: projToUse,
+                    botDocker: dockerToUse);
                 bot.ContainerId = newId;
                 bot.Status = "Running";
+                Console.WriteLine($"[BotService] New container started: {newId}");
             }
-            catch
+            catch (Exception ex)
             {
                 bot.Status = "Error";
+                Console.WriteLine($"[BotService] ERROR: CreateAndRunBot failed: {ex.Message}");
             }
 
             await _db.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// Возвращает тройку (code, proj, docker), беря пользовательские куски если есть,
-        /// иначе читая файлы-­шаблоны из папки.
-        /// </summary>
-        private (string? code, string? proj, string? docker) PrepareTemplates(
-            string token,
-            string? userCode,
-            string? userProj,
-            string? userDocker)
-        {
-            string LoadTpl(string name)
-                => File.ReadAllText(Path.Combine(_templatesPath, name));
-
-            // BotCode.cs.tpl должен содержать {{TelegramToken}}
-            string defaultCode = LoadTpl("BotCode.cs.tpl").Replace("{{TelegramToken}}", token);
-            string defaultProj = LoadTpl("BotProj.csproj.tpl");
-            string defaultDocker = LoadTpl("Dockerfile.tpl");
-
-            return (
-                userCode ?? defaultCode,
-                userProj ?? defaultProj,
-                userDocker ?? defaultDocker
-            );
+            Console.WriteLine($"[BotService] === RestartContainerAsync end for BotId={bot.Id} ===");
         }
     }
 }
