@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,8 +14,7 @@ namespace TBC.Services
 
         public ContainerService()
         {
-            // для Windows: npipe://./pipe/docker_engine
-            // для Linux/macOS: unix:///var/run/docker.sock
+
             var dockerUri = Environment.OSVersion.Platform == PlatformID.Win32NT
                 ? new Uri("npipe://./pipe/docker_engine")
                 : new Uri("unix:///var/run/docker.sock");

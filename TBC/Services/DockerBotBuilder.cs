@@ -16,7 +16,6 @@ namespace TBC.Services
             _tmplDir = Path.Combine(env.ContentRootPath, "Templates");
             Console.WriteLine($"[DockerBotBuilder] Templates directory: {_tmplDir}");
 
-            // Попытка взять имя проекта из среды, иначе жёстко прописать:
             var composeProject =
                 Environment.GetEnvironmentVariable("COMPOSE_PROJECT_NAME")
                 ?? "tbc";
@@ -30,46 +29,71 @@ namespace TBC.Services
             string? botProj,
             string? botDocker)
         {
-            Console.WriteLine($"[DockerBotBuilder] CreateAndRunBot start, token={telegramToken}");
+            Console.WriteLine($"[DockerBotBuilder] === CreateAndRunBot start, token={telegramToken} ===");
 
-            // 1. Папка для проекта
-            string folderName = "bot_" + Guid.NewGuid().ToString("N");
-            string basePath = Path.Combine("/tmp", folderName);
+            // 1) Папка для проекта
+            var folderName = "bot_" + Guid.NewGuid().ToString("N");
+            var basePath = Path.Combine("/tmp", folderName);
             Directory.CreateDirectory(basePath);
             Console.WriteLine($"[DockerBotBuilder] Working dir: {basePath}");
 
-            // 2. csproj
-            var projTpl = File.ReadAllText(Path.Combine(_tmplDir, "BotProj.csproj.tpl"));
-            var projText = string.IsNullOrWhiteSpace(botProj) ? projTpl : botProj;
+            // 2) csproj: если user-proj не пустой — используем его, иначе читаем шаблон
+            string projText;
+            if (!string.IsNullOrWhiteSpace(botProj))
+            {
+                projText = botProj!;
+            }
+            else
+            {
+                var projTpl = File.ReadAllText(Path.Combine(_tmplDir, "BotProj.csproj.tpl"));
+                projText = projTpl;
+            }
             var projPath = Path.Combine(basePath, "BotCode.csproj");
             File.WriteAllText(projPath, projText);
-            Console.WriteLine($"[DockerBotBuilder] Wrote csproj to {projPath}");
+            Console.WriteLine($"[DockerBotBuilder] Wrote csproj to {projPath} (length={projText.Length})");
 
-            // 3. Program.cs с подстановкой токена
-            var codeTpl = File.ReadAllText(Path.Combine(_tmplDir, "BotCode.cs.tpl"));
-            codeTpl = codeTpl.Replace("{{TelegramToken}}", telegramToken);
-            var codeText = string.IsNullOrWhiteSpace(botCode) ? codeTpl : botCode;
+            
+            string codeText;
+            if (!string.IsNullOrWhiteSpace(botCode))
+            {
+                codeText = botCode!;
+            }
+            else
+            {
+                var codeTpl = File.ReadAllText(Path.Combine(_tmplDir, "BotCode.cs.tpl"));
+                codeTpl = codeTpl.Replace("{{TelegramToken}}", telegramToken);
+                codeText = codeTpl;
+            }
             var codePath = Path.Combine(basePath, "Program.cs");
             File.WriteAllText(codePath, codeText);
-            Console.WriteLine($"[DockerBotBuilder] Wrote Program.cs to {codePath}");
+            Console.WriteLine($"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{codeText}\n\n\n\n\n\n\n\n\n\n\n\n\n");
+            Console.WriteLine($"[DockerBotBuilder] Wrote Program.cs to {codePath} (length={codeText.Length})");
 
-            // 4. Dockerfile
-            var dockerTpl = File.ReadAllText(Path.Combine(_tmplDir, "Dockerfile.tpl"));
-            var dockerText = string.IsNullOrWhiteSpace(botDocker) ? dockerTpl : botDocker;
+            // 4) Dockerfile: если user-docker не пустой — используем его, иначе читаем шаблон
+            string dockerText;
+            if (!string.IsNullOrWhiteSpace(botDocker))
+            {
+                dockerText = botDocker!;
+            }
+            else
+            {
+                var dockerTpl = File.ReadAllText(Path.Combine(_tmplDir, "Dockerfile.tpl"));
+                dockerText = dockerTpl;
+            }
             var dfPath = Path.Combine(basePath, "Dockerfile");
             File.WriteAllText(dfPath, dockerText);
-            Console.WriteLine($"[DockerBotBuilder] Wrote Dockerfile to {dfPath}");
+            Console.WriteLine($"[DockerBotBuilder] Wrote Dockerfile to {dfPath} (length={dockerText.Length})");
 
-            // 5. Тэг образа
-            string imageTag = $"bot_{Guid.NewGuid():N}";
+            // 5) Тэг образа
+            var imageTag = $"bot_{Guid.NewGuid():N}";
             Console.WriteLine($"[DockerBotBuilder] Image tag = {imageTag}");
 
-            // 6. Сборка Docker-образа
+            // 6) Сборка Docker-образа
             Console.WriteLine($"[DockerBotBuilder] Building image…");
             var buildOut = await RunProcessOrThrow("docker", $"build -t {imageTag} {basePath}");
             Console.WriteLine($"[DockerBotBuilder] Build output:\n{buildOut}");
 
-            // 7. Запуск контейнера в сети Compose
+            // 7) Запуск контейнера в сети Compose
             Console.WriteLine($"[DockerBotBuilder] Running container in network '{_networkName}'…");
             var runOut = await RunProcessOrThrow(
                 "docker",
@@ -77,6 +101,7 @@ namespace TBC.Services
             );
             var containerId = runOut.Trim();
             Console.WriteLine($"[DockerBotBuilder] Run output (containerId): {containerId}");
+            Console.WriteLine($"[DockerBotBuilder] === CreateAndRunBot end ===");
 
             return containerId;
         }
