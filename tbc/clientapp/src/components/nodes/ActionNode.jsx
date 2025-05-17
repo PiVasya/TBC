@@ -29,6 +29,11 @@ export default function ActionNode({ id, data }) {
             label: 'Удалить после выбора',
             type: 'checkbox'
         },
+        {
+            name: 'ColumnLayout',
+            label: 'Кнопки столбцом',
+            type: 'checkbox'
+        },
     ];
 
     // Сохраняем изменения через data.onSave и закрываем панель

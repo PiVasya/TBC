@@ -13,7 +13,7 @@ body, html, #root {
 }
 
 .panel {
-    flex: 0 0 300px; /* или 320px, как удобно */
+    flex: 0 0 700px; /* или 320px, как удобно */
     background: #fff;
     border-right: 1px solid #e0e0e0;
     padding: 16px;

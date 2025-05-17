@@ -66,7 +66,8 @@ namespace TBC.Services
             }
             var codePath = Path.Combine(basePath, "Program.cs");
             File.WriteAllText(codePath, codeText);
-            Console.WriteLine($"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{codeText}\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
+            Console.WriteLine($"\n\n\n\n\n\n\n\n\n\n{codeText}\n\n\n\n\n\n\n\n");
             Console.WriteLine($"[DockerBotBuilder] Wrote Program.cs to {codePath} (length={codeText.Length})");
 
             // 4) Dockerfile: если user-docker не пустой — используем его, иначе читаем шаблон
