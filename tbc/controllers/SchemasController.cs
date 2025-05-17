@@ -2,7 +2,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TBC.Data;
+using TBCData;     
 using TBC.Models.Entities;
 
 namespace TBC.Controllers
