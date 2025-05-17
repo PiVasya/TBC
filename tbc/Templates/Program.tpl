@@ -1,13 +1,13 @@
+#nullable enable
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
-using System.Collections.Generic;
+using Telegram.Bot.Types;
 
 namespace GeneratedBot
 {
@@ -15,66 +15,77 @@ namespace GeneratedBot
     {
         private static readonly Dictionary<long, WaitForResponseResult> _pendingQuestion = new();
 
-        // === Секция 1.1: все ноды кроме ActionNode===
+        // === 1. Создаём все ноды кроме ActionNode ===
         {{ for node in Nodes }}
-        {{ if node.Type == 'TextNode' }}
-        static readonly {{ node.Type }} {{ node.VarName }} 
-            = new {{ node.Type }}({{ node.ConstructorArgs }})
+            {{ if node.Type == "TextNode" }}
+        static readonly TextNode {{ node.VarName }}
+            = new TextNode({{ node.ConstructorArgs }})
         {
             {{ if node.HasLogUsage    }}LogUsage    = {{ node.LogUsage }},{{ end }}
             {{ if node.HasNotifyAdmin }}NotifyAdmin = {{ node.NotifyAdmin }},{{ end }}
-            {{ if node.HasDelete      }}DeleteAfter     = {{ node.DeleteAfter }},{{ end }}
+            {{ if node.HasSaveToDb    }}SaveToDb    = {{ node.SaveToDb }},{{ end }}
+            {{ if node.HasDelete      }}DeleteAfter = {{ node.DeleteAfter }},{{ end }}
             {{ if node.HasDuration    }}DurationSeconds = {{ node.DurationSeconds }},{{ end }}
         };
-        {{ end }}
-        {{ end }}
+            {{ end }}
 
-        {{ for node in Nodes }}
-        {{ if node.Type == 'DelayNode' }}
-        static readonly {{ node.Type }} {{ node.VarName }} 
-            = new {{ node.Type }}({{ node.ConstructorArgs }})
+            {{ if node.Type == "DelayNode" }}
+        static readonly DelayNode {{ node.VarName }}
+            = new DelayNode({{ node.ConstructorArgs }})
         {
             {{ if node.HasLogUsage    }}LogUsage    = {{ node.LogUsage }},{{ end }}
             {{ if node.HasNotifyAdmin }}NotifyAdmin = {{ node.NotifyAdmin }},{{ end }}
-            {{ if node.HasDelete      }}DeleteAfter     = {{ node.DeleteAfter }},{{ end }}
-            {{ if node.HasDuration    }}DurationSeconds = {{ node.DurationSeconds }},{{ end }}
+            {{ if node.HasSaveToDb    }}SaveToDb    = {{ node.SaveToDb }},{{ end }}
         };
-        {{ end }}
-        {{ end }}
+            {{ end }}
 
-        {{ for node in Nodes }}
-        {{ if node.Type == 'QuestionNode' }}
-        static readonly {{ node.Type }} {{ node.VarName }} 
-            = new {{ node.Type }}({{ node.ConstructorArgs }})
+            {{ if node.Type == "QuestionNode" }}
+        static readonly QuestionNode {{ node.VarName }}
+            = new QuestionNode({{ node.ConstructorArgs }})
         {
             {{ if node.HasLogUsage    }}LogUsage    = {{ node.LogUsage }},{{ end }}
             {{ if node.HasNotifyAdmin }}NotifyAdmin = {{ node.NotifyAdmin }},{{ end }}
-            {{ if node.HasDelete      }}DeleteAfter     = {{ node.DeleteAfter }},{{ end }}
+            {{ if node.HasSaveToDb    }}SaveToDb    = {{ node.SaveToDb }},{{ end }}
+            {{ if node.HasDelete      }}DeleteAfter = {{ node.DeleteAfter }},{{ end }}
         };
-        {{ end }}
+            {{ end }}
         {{ end }}
 
-        // === Секция 1.2: создаём ActionNode (с поддержкой удаления) ===
+        // === 2. Создаём ActionNode (пока без кнопок) ===
         {{ for node in Nodes }}
-        {{ if node.Type == 'ActionNode' }}
-        static readonly {{ node.Type }} {{ node.VarName }} 
-            = new {{ node.Type }}({{ node.ConstructorArgs }})
+            {{ if node.Type == "ActionNode" }}
+        static readonly ActionNode {{ node.VarName }}
+            = new ActionNode({{ node.ConstructorArgs }})
         {
             {{ if node.HasLogUsage    }}LogUsage    = {{ node.LogUsage }},{{ end }}
             {{ if node.HasNotifyAdmin }}NotifyAdmin = {{ node.NotifyAdmin }},{{ end }}
-            {{ if node.HasDelete      }}DeleteAfter     = {{ node.DeleteAfter }},{{ end }}
+            {{ if node.HasSaveToDb    }}SaveToDb    = {{ node.SaveToDb }},{{ end }}
+            {{ if node.HasDelete      }}DeleteAfter = {{ node.DeleteAfter }},{{ end }}
+            {{ if node.HasColumnLayout      }}ColumnLayout = {{ node.ColumnLayout }},{{ end }}
         };
-        {{ end }}
+            {{ end }}
         {{ end }}
 
-        // … остальные ноды без удаления …
-
-        // === Секция 2: связываем Next / OnResponse ===
+        // === 3. Статический конструктор: Next + кнопки ===
         static Program()
         {
             BotConfig.AdminChatId = {{ AdminChatId }};
+
+            // 3.1 Линейные переходы
             {{ for link in Links }}
             {{ link.ParentVar }}.Next = {{ link.ChildVar }};
+            {{ end }}
+
+            // 3.2 Кнопочные ActionNode → Buttons.Add
+            {{ for node in Nodes }}
+                {{ if node.Type == "ActionNode" }}
+                    {{ for btn in node.Buttons }}
+            {{ node.VarName }}.Buttons.Add((
+                "{{ btn.Item1 }}",
+                {{ if btn.Item2 != "null" }}{{ btn.Item2 }}{{ else }}null{{ end }}
+            ));
+                    {{ end }}
+                {{ end }}
             {{ end }}
         }
 
@@ -86,6 +97,7 @@ namespace GeneratedBot
             Console.WriteLine("Bot started...");
             await Task.Delay(-1);
         }
+
 
                static async Task UpdateHandler(ITelegramBotClient bot, Update upd, CancellationToken ct)
         {
@@ -217,6 +229,7 @@ namespace GeneratedBot
         public bool SaveToDb { get; set; }
         public int DurationSeconds { get; set; }
 
+
         public DelayNode(int seconds) => Seconds = seconds;
 
         public Task<NodeResult> ExecuteAsync(
@@ -233,15 +246,15 @@ namespace GeneratedBot
 
     internal class ActionNode : INode
     {
-        public string Text { get; }
-        public List<(string Label, INode? Next)> Buttons { get; }
 
+        public int DurationSeconds { get; set; }
         public bool LogUsage { get; set; }
         public bool NotifyAdmin { get; set; }
         public bool SaveToDb { get; set; }
-        public bool DeleteAfter { get; set; }  // флаг «удалять по нажатию»
-        public int DurationSeconds { get; set; } // игнорируем, всегда 1 секунда
-
+        public bool DeleteAfter { get; set; }
+        public bool ColumnLayout { get; set; }
+        public string Text { get; }
+        public List<(string Label, INode? Next)> Buttons { get; }
         // храним для каждого чата: карта кнопок, Id отправленного сообщения,
         // флаг DeleteAfter, сам бот и token отмены
         private static readonly Dictionary<
@@ -255,50 +268,77 @@ namespace GeneratedBot
             Buttons = buttons;
         }
 
-        public async Task<NodeResult> ExecuteAsync(
-            ITelegramBotClient bot,
-            long chatId,
-            CancellationToken ct)
+    public async Task<NodeResult> ExecuteAsync(
+        ITelegramBotClient bot,
+        long chatId,
+        CancellationToken ct)
+    {
+        // 1. Заголовок-вопрос
+        if (LogUsage)
+            Console.WriteLine($"[ActionNode] Chat {chatId}: sending buttons “{Text}”");
+
+        if (NotifyAdmin && BotConfig.AdminChatId.HasValue)
+            await bot.SendMessage(BotConfig.AdminChatId.Value,
+                                  $"[Notify] Chat {chatId} reached ActionNode “{Text}”",
+                                  cancellationToken: ct);
+
+        // 2. Собираем строки клавиатуры
+        List<List<InlineKeyboardButton>> rows;
+
+        if (ColumnLayout)                       // ▸ ОДНА кнопка = одна строка
         {
-            if (LogUsage)
-                Console.WriteLine($"[ActionNode] Chat {chatId}: sending buttons “{Text}”");
-
-            if (NotifyAdmin && BotConfig.AdminChatId.HasValue)
-            {
-                await bot.SendMessage(
-                    chatId: BotConfig.AdminChatId.Value,
-                    text: $"[Notify] Chat {chatId} reached ActionNode “{Text}”",
-                    cancellationToken: ct);
-            }
-
-            // собираем inline-кнопки
-            var markup = new InlineKeyboardMarkup(
-                Buttons.ConvertAll(b => InlineKeyboardButton.WithCallbackData(b.Label, b.Label))
-            );
-
-            // карта переходов
-            var map = new Dictionary<string, INode?>();
-            foreach (var (lbl, nxt) in Buttons)
-                map[lbl] = nxt;
-
-            // отправляем сообщение с кнопками
-            var msg = await bot.SendMessage(
-                chatId: chatId,
-                text: Text,
-                replyMarkup: markup,
-                cancellationToken: ct);
-
-            if (SaveToDb)
-            {
-                // TODO: сохранить в БД
-                Console.WriteLine($"[ActionNode] Chat {chatId}: saving message {msg.MessageId} to DB");
-            }
-
-            // сохраняем все параметры в _pending, удаление произойдёт в TryTakeNext
-            _pending[chatId] = (map, msg.MessageId, DeleteAfter, bot, ct);
-
-            return new BranchResult(markup, map);
+            rows = Buttons
+                .Select(b => new List<InlineKeyboardButton> {
+                    InlineKeyboardButton.WithCallbackData(b.Label, b.Label)
+                })
+                .ToList();
         }
+        else                                    // ▸ «старый» алгоритм автопереноса
+        {
+            int limit = (int)(Text.Length * 0.9);
+            rows = new();
+            var current = new List<InlineKeyboardButton>();
+            int currentMax = 0;
+
+            void Flush()
+            {
+                if (current.Count == 0) return;
+                rows.Add(current);
+                current     = new();
+                currentMax  = 0;
+            }
+
+            foreach (var (label, _) in Buttons)
+            {
+                int newMax   = Math.Max(currentMax, label.Length);
+                int newWidth = newMax * (current.Count + 1);
+
+                if (current.Count > 0 && newWidth > limit)
+                    Flush();
+
+                current.Add(InlineKeyboardButton.WithCallbackData(label, label));
+                currentMax = newMax;
+            }
+            Flush();
+        }
+
+        var markup = new InlineKeyboardMarkup(rows.Select(r => r.ToArray()));
+
+        // 3. Карта переходов
+        var map = Buttons.ToDictionary(b => b.Label, b => b.Next);
+
+        // 4. Отправляем
+        var msg = await bot.SendMessage(chatId, Text,
+                                        replyMarkup: markup,
+                                        cancellationToken: ct);
+
+        if (SaveToDb)
+            Console.WriteLine($"[ActionNode] Chat {chatId}: saving message {msg.MessageId} to DB");
+
+        _pending[chatId] = (map, msg.MessageId, DeleteAfter, bot, ct);
+        return new BranchResult(markup, map);
+    }
+
 
         public static bool TryTakeNext(
             long chatId,

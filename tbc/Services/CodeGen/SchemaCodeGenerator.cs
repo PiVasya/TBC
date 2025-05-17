@@ -1,4 +1,3 @@
-// Services/CodeGen/SchemaCodeGenerator.cs
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,34 +13,33 @@ namespace TBC.Services.CodeGen
         /// <summary>
         /// Генерирует из чистого JSON-схемы Program.cs, BotProj.csproj и Dockerfile.
         /// </summary>
-        /// <param name="schemaJson">JSON вида {"nodes":[...],"edges":[...]}</param>
-        /// <param name="telegramToken">Токен телеграм-бота</param>
-        /// <param name="adminChatId">ChatId админа</param>
-        /// <param name="templatesPath">Путь к папке Templates (где лежат Program.tpl и др.)</param>
         public static (string code, string proj, string docker) GenerateCode(
             string schemaJson,
             string telegramToken,
             long adminChatId,
             string templatesPath)
         {
-            // 1) десериализуем "чистую" схему
+            Console.WriteLine("[CodeGen] Starting GenerateCode");
+            Console.WriteLine($"[CodeGen] Raw schemaJson length = {schemaJson?.Length}");
+
+            // 1) десериализуем схему ----------------------------------------------------------
             var schema = JsonConvert.DeserializeObject<FlowSchema>(schemaJson)
                          ?? throw new InvalidOperationException("Schema is null");
+            Console.WriteLine($"[CodeGen] Deserialized FlowSchema: nodes = {schema.Nodes.Count}, edges = {schema.Edges.Count}");
 
-            // 2) Создаём TemplateNode для всех нод, сразу убираем StartNode из списка нод для шаблона
+            // 2) TemplateNode для всех нод ----------------------------------------------------
             var allNodes = schema.Nodes.Select(n => new TemplateNode(n)).ToList();
-            var nodes = allNodes
-                .Where(n => n.Type != "StartNode")
-                .ToList();
+            var nodes = allNodes.Where(n => n.Type != "StartNode").ToList();
+            // кнопки заполняет только BFS-алгоритм
 
-            // 3) Вшиваем кнопки в ActionNode...
+            // 3) BFS-заполнение Buttons для ActionNode ---------------------------------------
             foreach (var action in nodes.Where(n => n.Type == "ActionNode"))
             {
                 var buttons = new List<(string Label, string NextVar)>();
                 var seen = new HashSet<string>();
                 var queue = new Queue<string>();
 
-                // прямые дети-кнопки
+                // стартуем от прямых рёбер к Button-нодам
                 foreach (var e in schema.Edges.Where(e => e.Source == action.Id))
                 {
                     var child = schema.Nodes.First(x => x.Id == e.Target);
@@ -58,17 +56,18 @@ namespace TBC.Services.CodeGen
                     var btn = schema.Nodes.First(n => n.Id == btnId);
                     var label = btn.Data["label"]?.Value<string>() ?? "";
 
-                    // следующий после кнопки (не кнопка)
+                    // найдём переход из Button-ноды к первой не-Button-ноде
                     var nextEdge = schema.Edges
                         .FirstOrDefault(e => e.Source == btnId
-                                           && schema.Nodes.First(n => n.Id == e.Target).Type != "ButtonNode");
+                                          && schema.Nodes.First(n => n.Id == e.Target).Type != "ButtonNode");
+
                     var nextVar = nextEdge != null
                         ? allNodes.First(x => x.Id == nextEdge.Target).VarName
                         : "null";
 
                     buttons.Add((label, nextVar));
 
-                    // вложенные кнопки
+                    // очередь следующих Button-нод
                     foreach (var e2 in schema.Edges.Where(e2 => e2.Source == btnId))
                     {
                         var sub = schema.Nodes.First(n => n.Id == e2.Target);
@@ -77,13 +76,10 @@ namespace TBC.Services.CodeGen
                     }
                 }
 
-                var ctorList = string.Join(", ",
-                    buttons.Select(b => $"(\"{Escape(b.Label)}\",{b.NextVar})"));
-                action.ConstructorArgs = action.ConstructorArgs
-                    .Replace("/* buttons */", ctorList);
+                action.Buttons.AddRange(buttons.Select(b => (b.Label, b.NextVar)));
             }
 
-            // 4) связи Next (без StartNode и ButtonNode)
+            // 4) связи Next (без StartNode и ButtonNode) -------------------------------------
             var links = schema.Edges
                 .Where(e =>
                 {
@@ -95,11 +91,10 @@ namespace TBC.Services.CodeGen
                 })
                 .Select(e => new TemplateLink(
                     allNodes.First(n => n.Id == e.Source).VarName,
-                    allNodes.First(n => n.Id == e.Target).VarName
-                ))
+                    allNodes.First(n => n.Id == e.Target).VarName))
                 .ToList();
 
-            // 5) команды (StartNode → childVar)
+            // 5) команды ----------------------------------------------------------------------
             var commands = new List<TemplateCommand>();
             foreach (var start in schema.Nodes.Where(n => n.Type == "StartNode"))
             {
@@ -111,21 +106,18 @@ namespace TBC.Services.CodeGen
                 commands.Add(new TemplateCommand(cmdText, childVar));
             }
 
-            // 6) выбираем DefaultNodeVar: сначала ищем "/start", иначе первую команду, иначе первую non-StartNode
-            var startCmd = commands
-                .FirstOrDefault(c => c.CommandText.Equals("/start", StringComparison.OrdinalIgnoreCase));
-            var defaultNode = startCmd?.NodeVar
+            // 6) DefaultNode ------------------------------------------------------------------
+            var defaultNode = commands.FirstOrDefault(c => c.CommandText.Equals("/start", StringComparison.OrdinalIgnoreCase))?.NodeVar
                            ?? commands.FirstOrDefault()?.NodeVar
                            ?? nodes.First().VarName;
 
-            // 7) рендерим Program.tpl
-            var programTplPath = Path.Combine(templatesPath, "Program.tpl");
-            var programTpl = Template.Parse(File.ReadAllText(programTplPath));
-            if (programTpl.HasErrors)
-                throw new InvalidOperationException(
-                    "Ошибки в шаблоне Program.tpl:\n" +
-                    string.Join("\n", programTpl.Messages.Select(m => m.Message)));
+            var initLines = new List<string>();
+            foreach (var n in nodes.Where(x => x.Type == "ActionNode" && x.HasColumnLayout))
+                initLines.Add($"{n.VarName}.ColumnLayout = {n.ColumnLayout.ToString().ToLowerInvariant()};");
 
+            // 7) рендер Program.tpl -----------------------------------------------------------
+            var programTplContent = File.ReadAllText(Path.Combine(templatesPath, "Program.tpl"));
+            var programTpl = Template.Parse(programTplContent);
             var programCode = programTpl.Render(new
             {
                 TelegramToken = telegramToken,
@@ -133,21 +125,15 @@ namespace TBC.Services.CodeGen
                 Nodes = nodes,
                 Links = links,
                 Commands = commands,
-                DefaultNodeVar = defaultNode
+                DefaultNodeVar = defaultNode,
+                InitLines = initLines
             }, member => member.Name);
 
-            // 8) читаем шаблон проекта и докерфайла
-            var projTemplate = File.ReadAllText(Path.Combine(templatesPath, "BotProj.csproj.tpl"));
-            var dockerTemplate = File.ReadAllText(Path.Combine(templatesPath, "Dockerfile.tpl"));
+            // 8) остальные шаблоны ------------------------------------------------------------
+            var proj = File.ReadAllText(Path.Combine(templatesPath, "BotProj.csproj.tpl"));
+            var docker = File.ReadAllText(Path.Combine(templatesPath, "Dockerfile.tpl"));
 
-            return (
-                code: programCode,
-                proj: projTemplate,
-                docker: dockerTemplate
-            );
+            return (programCode, proj, docker);
         }
-
-        private static string Escape(string s)
-            => s.Replace("\\", "\\\\").Replace("\"", "\\\"");
     }
 }

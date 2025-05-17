@@ -1,9 +1,4 @@
-// Generators/TemplateNode.cs
-using System;
-using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using TBC.Services.CodeGen;
-using System.Xml.Linq;
 
 namespace TBC.Services.CodeGen
 {
@@ -30,6 +25,8 @@ namespace TBC.Services.CodeGen
         public bool DeleteAfter { get; }
         public bool HasDuration { get; }
         public int DurationSeconds { get; }
+        public bool HasColumnLayout { get; }
+        public bool ColumnLayout { get; }
 
         /// <summary> Для ActionNode: список пар (Label, VarName) дочерних кнопок. </summary>
         public List<(string Label, string VarName)> Buttons { get; } = new();
@@ -56,6 +53,8 @@ namespace TBC.Services.CodeGen
             DurationSeconds = int.TryParse(
                 data["duration"]?.Value<string>(),
                 out var dsec) ? dsec : 0;
+            HasColumnLayout = data.ContainsKey("ColumnLayout");
+            ColumnLayout = data["ColumnLayout"]?.Value<bool>() ?? false;
 
             // Базовые аргументы конструктора
             switch (Type)
@@ -71,7 +70,6 @@ namespace TBC.Services.CodeGen
                     break;
 
                 case "DelayNode":
-                    // переименовали d → durStr
                     var durStr = data["duration"]?.Value<string>()
                                  ?? data["label"]?.Value<string>()
                                  ?? "0";
@@ -87,7 +85,7 @@ namespace TBC.Services.CodeGen
 
                 case "ActionNode":
                     var act = data["label"]?.Value<string>() ?? "";
-                    ConstructorArgs = $"\"{Escape(act)}\", new List<(string, INode?)>{{ /* buttons */ }}";
+                    ConstructorArgs = $"\"{Escape(act)}\", new List<(string, INode?)>()";
                     break;
 
                 case "QuestionNode":
