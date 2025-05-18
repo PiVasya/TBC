@@ -22,7 +22,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./TBC/Dockerfile
     container_name: TBC_Api
     expose:
       - "80"
