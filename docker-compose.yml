@@ -21,7 +21,7 @@ services:
 
   api:
     build:
-      context: ./TBC
+      context: .
       dockerfile: Dockerfile
     container_name: TBC_Api
     expose:
