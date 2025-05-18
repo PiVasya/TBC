@@ -108,6 +108,9 @@ namespace tbc.Services.CodeGen
             => char.ToLower(type[0]) + type.Substring(1) + id;
 
         private static string Escape(string s)
-            => s.Replace("\\", "\\\\").Replace("\"", "\\\"");
+    => s.Replace("\\", "\\\\")        // обратные слэши
+         .Replace("\"", "\\\"")       // кавычки
+         .Replace("\r", "")           // CR выкидываем
+         .Replace("\n", "\\n");       // LF → \n
     }
 }

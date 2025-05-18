@@ -143,7 +143,6 @@ namespace tbc.Services
             return ToDto(bot);
         }
 
-        // —————————————————————————————————————————————————
 
         private BotDto ToDto(BotInstance b)
             => new BotDto(b.Id, b.Name, b.Token, b.ContainerId, b.Status, b.CreatedAt);
