@@ -10,7 +10,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # 2.1) Сначала копируем только .csproj, чтобы кэшировать dotnet restore
-COPY TBC/TBC.csproj ./TBC.csproj
+COPY TBC.csproj ./TBC.csproj
 RUN dotnet restore "TBC.csproj"
 
 # 2.2) Теперь копируем всю папку TBC целиком: код, Data/, Models/, Services/, Migrations/ и т.д.
