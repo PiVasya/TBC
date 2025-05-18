@@ -18,7 +18,7 @@ namespace TBC.Services
 
             var composeProject =
                 Environment.GetEnvironmentVariable("COMPOSE_PROJECT_NAME")
-                ?? "tbc";
+                ?? "TBC";
             _networkName = $"{composeProject}_default";
             Console.WriteLine($"[DockerBotBuilder] Using compose network: {_networkName}");
         }

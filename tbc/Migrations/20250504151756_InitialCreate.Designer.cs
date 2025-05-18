@@ -9,7 +9,7 @@ using TBC.Data;
 
 #nullable disable
 
-namespace tbc.Migrations
+namespace TBC.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20250504151756_InitialCreate")]

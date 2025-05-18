@@ -8,7 +8,7 @@
 		<ProjectGuid>81dded9d-158b-e303-5f62-77a2896d2a5a</ProjectGuid>
 
 		<!-- Явно фиксируем имя проекта Compose -->
-		<DockerComposeProjectName>tbc</DockerComposeProjectName>
+		<DockerComposeProjectName>TBC</DockerComposeProjectName>
 	</PropertyGroup>
 
 	<!-- Подключаем файл .env, чтобы VS передавал его в docker-compose -->

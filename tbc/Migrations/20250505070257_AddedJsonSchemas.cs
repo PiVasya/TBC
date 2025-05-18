@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace tbc.Migrations
+namespace TBC.Migrations
 {
     /// <inheritdoc />
     public partial class AddedJsonSchemas : Migration
