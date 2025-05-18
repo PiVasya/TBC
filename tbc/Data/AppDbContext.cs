@@ -11,7 +11,7 @@ namespace TBCData
         }
 
         public DbSet<BotInstance> BotInstances { get; set; } = null!;
-        public DbSet<BotMessage> BotMessages { get; set; } = null!;
+        public DbSet<BotMessage> BotMessages { get; set; } = null!; 
         public DbSet<PollSession> PollSessions { get; set; } = null!;
         public DbSet<PollItem> PollItems { get; set; } = null!;
         public DbSet<BotSchema> BotSchemas { get; set; } = null!;
