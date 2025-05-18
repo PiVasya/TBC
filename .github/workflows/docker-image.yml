@@ -43,8 +43,8 @@ jobs:
     - name: Build & push API image
       uses: docker/build-push-action@v5
       with:
-        context: ./TBC           # путь к исходникам
-        file: ./TBC/Dockerfile   # мульти-стейдж Dockerfile
+        context: ./tbc         # путь к исходникам
+        file: ./tbc/Dockerfile   # мульти-стейдж Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
