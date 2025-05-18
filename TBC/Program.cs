@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.EntityFrameworkCore;
-using TBCData;
+using TBC.Data;
 using TBC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
