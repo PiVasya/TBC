@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35806.99
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tbc", "TBC\tbc.csproj", "{70B00B2E-45F1-45DE-B45F-83788E6AC708}"
-EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решения", "Элементы решения", "{754FC069-D67B-A9D7-50A1-8D1CA196D8F1}"
@@ -17,20 +15,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tbc", "tbc\tbc.csproj", "{281FF5D9-27AC-FC11-FC35-AFBA891A06BF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{70B00B2E-45F1-45DE-B45F-83788E6AC708}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{70B00B2E-45F1-45DE-B45F-83788E6AC708}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{70B00B2E-45F1-45DE-B45F-83788E6AC708}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{70B00B2E-45F1-45DE-B45F-83788E6AC708}.Release|Any CPU.Build.0 = Release|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{281FF5D9-27AC-FC11-FC35-AFBA891A06BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{281FF5D9-27AC-FC11-FC35-AFBA891A06BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{281FF5D9-27AC-FC11-FC35-AFBA891A06BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{281FF5D9-27AC-FC11-FC35-AFBA891A06BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

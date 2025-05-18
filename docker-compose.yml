@@ -13,17 +13,17 @@ services:
 
   frontend:
     build:
-      context: ./TBC/clientapp
+      context: ./tbc/clientapp
       dockerfile: Dockerfile
-    container_name: TBC_Frontend
+    container_name: tbc_Frontend
     expose:
       - "80"
 
   api:
     build:
       context: .
-      dockerfile: ./TBC/Dockerfile
-    container_name: TBC_Api
+      dockerfile: ./tbc/Dockerfile
+    container_name: tbc_Api
     expose:
       - "80"
     depends_on:
@@ -34,15 +34,15 @@ services:
 
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
-      - ConnectionStrings__Default=Host=db;Port=5432;Database=TBCdb;Username=postgres;Password=secret
+      - ConnectionStrings__Default=Host=db;Port=5432;Database=tbcdb;Username=postgres;Password=secret
 
   db:
     image: postgres:17
-    container_name: TBC_Db
+    container_name: tbc_Db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: secret
-      POSTGRES_DB: TBCdb
+      POSTGRES_DB: tbcdb
     ports:
       - "5433:5432"
     volumes:

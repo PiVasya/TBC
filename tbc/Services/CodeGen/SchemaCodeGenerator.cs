@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Scriban;
 
-namespace TBC.Services.CodeGen
+namespace tbc.Services.CodeGen
 {
     public static class SchemaCodeGenerator
     {

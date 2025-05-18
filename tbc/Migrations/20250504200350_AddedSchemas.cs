@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace TBC.Migrations
+namespace tbc.Migrations
 {
     /// <inheritdoc />
     public partial class AddedSchemas : Migration

@@ -1,7 +1,7 @@
-using TBC.Models.DTO;
-using TBC.Models.Requests;
+using tbc.Models.DTO;
+using tbc.Models.Requests;
 
-namespace TBC.Services
+namespace tbc.Services
 {
     public interface IBotService
     {

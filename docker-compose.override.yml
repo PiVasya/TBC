@@ -1,9 +1,9 @@
 services:
   api:
     build:
-      context: ./TBC            # <-- здесь ваш ASP.NET-проект
+      context: ./tbc            # <-- здесь ваш ASP.NET-проект
       dockerfile: Dockerfile
-    container_name: TBC_Api
+    container_name: tbc_Api
     expose:
       - "80"
     depends_on:

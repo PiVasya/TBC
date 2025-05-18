@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
-using TBC.Models;
+using tbc.Models;
 
-namespace TBC.Services
+namespace tbc.Services
 {
     public class ContainerService : IContainerService, IDisposable
     {

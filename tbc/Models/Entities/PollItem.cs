@@ -1,6 +1,6 @@
 using System;
 
-namespace TBC.Models.Entities
+namespace tbc.Models.Entities
 {
     public class PollItem
     {

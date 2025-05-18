@@ -1,4 +1,4 @@
-﻿namespace TBC.Models
+namespace tbc.Models
 {
     public class ContainerDto
     {

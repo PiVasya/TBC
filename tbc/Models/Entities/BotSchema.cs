@@ -1,4 +1,4 @@
-namespace TBC.Models.Entities
+namespace tbc.Models.Entities
 {
     public class BotSchema
     {

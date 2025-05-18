@@ -1,4 +1,4 @@
-namespace TBC.Models.Requests
+namespace tbc.Models.Requests
 {
     public class UpdateBotRequest
     {

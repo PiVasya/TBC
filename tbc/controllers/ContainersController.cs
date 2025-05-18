@@ -1,8 +1,8 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using TBC.Services;
+using tbc.Services;
 
-namespace TBC.Controllers
+namespace tbc.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

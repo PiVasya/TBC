@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TBC.Migrations
+namespace tbc.Migrations
 {
     /// <inheritdoc />
     public partial class ContainerId_now_is_nullable : Migration

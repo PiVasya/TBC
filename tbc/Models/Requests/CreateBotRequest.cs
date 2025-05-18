@@ -1,7 +1,7 @@
 // Models/Requests/CreateBotRequest.cs
 using System.Text.Json;
 
-namespace TBC.Models.Requests
+namespace tbc.Models.Requests
 {
     public class CreateBotRequest
     {

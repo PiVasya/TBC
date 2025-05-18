@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using TBC.Data;
+using tbc.Data;
 
 #nullable disable
 
-namespace TBC.Migrations
+namespace tbc.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     partial class AppDbContextModelSnapshot : ModelSnapshot
@@ -22,7 +22,7 @@ namespace TBC.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("TBC.Models.Entities.BotInstance", b =>
+            modelBuilder.Entity("tbc.Models.Entities.BotInstance", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -53,7 +53,7 @@ namespace TBC.Migrations
                     b.ToTable("BotInstances");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.BotMessage", b =>
+            modelBuilder.Entity("tbc.Models.Entities.BotMessage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -83,7 +83,7 @@ namespace TBC.Migrations
                     b.ToTable("BotMessages");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.BotSchema", b =>
+            modelBuilder.Entity("tbc.Models.Entities.BotSchema", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -110,7 +110,7 @@ namespace TBC.Migrations
                     b.ToTable("BotSchemas");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.PollItem", b =>
+            modelBuilder.Entity("tbc.Models.Entities.PollItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -146,7 +146,7 @@ namespace TBC.Migrations
                     b.ToTable("PollItems");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.PollSession", b =>
+            modelBuilder.Entity("tbc.Models.Entities.PollSession", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -172,9 +172,9 @@ namespace TBC.Migrations
                     b.ToTable("PollSessions");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.BotMessage", b =>
+            modelBuilder.Entity("tbc.Models.Entities.BotMessage", b =>
                 {
-                    b.HasOne("TBC.Models.Entities.BotInstance", "Bot")
+                    b.HasOne("tbc.Models.Entities.BotInstance", "Bot")
                         .WithMany("Messages")
                         .HasForeignKey("BotId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -183,9 +183,9 @@ namespace TBC.Migrations
                     b.Navigation("Bot");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.BotSchema", b =>
+            modelBuilder.Entity("tbc.Models.Entities.BotSchema", b =>
                 {
-                    b.HasOne("TBC.Models.Entities.BotInstance", "BotInstance")
+                    b.HasOne("tbc.Models.Entities.BotInstance", "BotInstance")
                         .WithMany("Schemas")
                         .HasForeignKey("BotInstanceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -194,15 +194,15 @@ namespace TBC.Migrations
                     b.Navigation("BotInstance");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.PollItem", b =>
+            modelBuilder.Entity("tbc.Models.Entities.PollItem", b =>
                 {
-                    b.HasOne("TBC.Models.Entities.BotMessage", "BotMessage")
+                    b.HasOne("tbc.Models.Entities.BotMessage", "BotMessage")
                         .WithMany()
                         .HasForeignKey("BotMessageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TBC.Models.Entities.PollSession", "PollSession")
+                    b.HasOne("tbc.Models.Entities.PollSession", "PollSession")
                         .WithMany("Items")
                         .HasForeignKey("PollSessionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -213,9 +213,9 @@ namespace TBC.Migrations
                     b.Navigation("PollSession");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.PollSession", b =>
+            modelBuilder.Entity("tbc.Models.Entities.PollSession", b =>
                 {
-                    b.HasOne("TBC.Models.Entities.BotInstance", "Bot")
+                    b.HasOne("tbc.Models.Entities.BotInstance", "Bot")
                         .WithMany("PollSessions")
                         .HasForeignKey("BotId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -224,7 +224,7 @@ namespace TBC.Migrations
                     b.Navigation("Bot");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.BotInstance", b =>
+            modelBuilder.Entity("tbc.Models.Entities.BotInstance", b =>
                 {
                     b.Navigation("Messages");
 
@@ -233,7 +233,7 @@ namespace TBC.Migrations
                     b.Navigation("Schemas");
                 });
 
-            modelBuilder.Entity("TBC.Models.Entities.PollSession", b =>
+            modelBuilder.Entity("tbc.Models.Entities.PollSession", b =>
                 {
                     b.Navigation("Items");
                 });

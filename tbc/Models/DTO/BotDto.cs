@@ -1,4 +1,4 @@
-namespace TBC.Models.DTO
+namespace tbc.Models.DTO
 {
     public record BotDto(
         int Id,

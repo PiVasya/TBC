@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using TBC.Models;
+using tbc.Models;
 
-namespace TBC.Services
+namespace tbc.Services
 {
     public interface IContainerService
     {

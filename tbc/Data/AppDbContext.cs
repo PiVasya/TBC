@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using TBC.Models.Entities;
+using tbc.Models.Entities;
 
-namespace TBC.Data
+namespace tbc.Data
 {
     public class AppDbContext : DbContext
     {

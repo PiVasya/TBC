@@ -2,10 +2,10 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TBC.Data;     
-using TBC.Models.Entities;
+using tbc.Data;     
+using tbc.Models.Entities;
 
-namespace TBC.Controllers
+namespace tbc.Controllers
 {
     [ApiController]
     [Route("api/bots/{botId:int}/schemas")]

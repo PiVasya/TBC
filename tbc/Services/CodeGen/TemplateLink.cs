@@ -1,4 +1,4 @@
-namespace TBC.Services.CodeGen
+namespace tbc.Services.CodeGen
 {
     internal class TemplateLink
     {

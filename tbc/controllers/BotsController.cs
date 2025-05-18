@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using TBC.Models.DTO;
-using TBC.Models.Requests;
-using TBC.Services;
+using tbc.Models.DTO;
+using tbc.Models.Requests;
+using tbc.Services;
 
-namespace TBC.Controllers
+namespace tbc.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

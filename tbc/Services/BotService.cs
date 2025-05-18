@@ -7,13 +7,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using TBC.Data;
-using TBC.Models.DTO;
-using TBC.Models.Entities;
-using TBC.Models.Requests;
-using TBC.Services.CodeGen;
+using tbc.Data;
+using tbc.Models.DTO;
+using tbc.Models.Entities;
+using tbc.Models.Requests;
+using tbc.Services.CodeGen;
 
-namespace TBC.Services
+namespace tbc.Services
 {
     public class BotService : IBotService
     {

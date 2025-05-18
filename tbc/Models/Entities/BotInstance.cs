@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace TBC.Models.Entities
+namespace tbc.Models.Entities
 {
     public class BotInstance
     {

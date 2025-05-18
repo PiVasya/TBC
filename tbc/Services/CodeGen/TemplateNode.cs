@@ -1,6 +1,6 @@
 using Newtonsoft.Json.Linq;
 
-namespace TBC.Services.CodeGen
+namespace tbc.Services.CodeGen
 {
     /// <summary>
     /// Модель одной ноды для генерации кода.
