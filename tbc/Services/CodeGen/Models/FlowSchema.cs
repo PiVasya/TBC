@@ -10,7 +10,7 @@ namespace TBC.Services.CodeGen
         [JsonProperty("edges")] public List<Edge> Edges { get; set; } = new();
     }
 
-    public class Node
+    public class Node 
     {
         [JsonProperty("id")] public string Id { get; set; } = "";
         [JsonProperty("type")] public string Type { get; set; } = "";
