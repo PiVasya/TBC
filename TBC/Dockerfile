@@ -14,7 +14,7 @@ COPY TBC/TBC.csproj ./TBC.csproj
 RUN dotnet restore "TBC.csproj"
 
 # 2.2) Теперь копируем всю папку TBC целиком: код, Data/, Models/, Services/, Migrations/ и т.д.
-COPY TBC/. ./
+COPY ./. ./
 
 # 2.3) Собираем и публикуем приложение
 RUN dotnet publish "TBC.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
