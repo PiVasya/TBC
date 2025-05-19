@@ -34,13 +34,12 @@ namespace tbc.Services
             _db.BotInstances
                .AsNoTracking()
                .OrderBy(b => b.Id)
-               .Select(b => new BotDto(b.Id, b.Name, b.Token, b.ContainerId, b.Status, b.CreatedAt))
+               .Select(b => new BotDto(b.Id, b.Name, b.Token, b.AdminId, b.ContainerId, b.Status, b.CreatedAt))
                .ToListAsync()
                .ContinueWith(t => (IEnumerable<BotDto>)t.Result);
 
         public async Task<BotDto> CreateAsync(CreateBotRequest req)
         {
-            // 1) создаём запись
             var bot = new BotInstance
             {
                 Name = req.Name,
@@ -83,7 +82,7 @@ namespace tbc.Services
             _db.BotInstances
                .AsNoTracking()
                .Where(b => b.Id == id)
-               .Select(b => new BotDto(b.Id, b.Name, b.Token, b.ContainerId, b.Status, b.CreatedAt))
+               .Select(b => new BotDto(b.Id, b.Name, b.Token, b.AdminId, b.ContainerId, b.Status, b.CreatedAt))
                .FirstOrDefaultAsync();
 
         public async Task<bool> DeleteAsync(int id)
@@ -148,7 +147,7 @@ namespace tbc.Services
 
 
         private BotDto ToDto(BotInstance b)
-            => new BotDto(b.Id, b.Name, b.Token, b.ContainerId, b.Status, b.CreatedAt);
+            => new BotDto(b.Id, b.Name, b.Token, b.AdminId, b.ContainerId, b.Status, b.CreatedAt);
 
         /// <summary>
         /// Универсальный метод: останавливает старый контейнер, собирает+запускает новый и сохраняет статус.
@@ -211,6 +210,7 @@ namespace tbc.Services
                 SchemaCodeGenerator.GenerateCode(
                     schemaJson: cleanJson,
                     telegramToken: bot.Token,
+                    BotId : bot.Id,
                     adminChatId: Convert.ToInt64(bot.AdminId),
                     templatesPath: _templatesPath);
             Console.WriteLine($"[BotService] GeneratedCode length={generatedCode.Length}");

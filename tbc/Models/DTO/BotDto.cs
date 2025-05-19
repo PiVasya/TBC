@@ -4,6 +4,7 @@ namespace tbc.Models.DTO
         int Id,
         string Name,
         string? TelegramToken,
+        string? AdminId,
         string? ContainerId,
         string Status,
         DateTime CreatedAt

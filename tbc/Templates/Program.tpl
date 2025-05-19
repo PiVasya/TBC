@@ -72,7 +72,7 @@ namespace GeneratedBot
         static Program()
         {
             BotConfig.AdminChatId = {{ AdminChatId }};
-
+            BotConfig.BotId = {{ BotId }};
             // 3.1 Линейные переходы
             {{ for link in Links }}
             {{ link.ParentVar }}.Next = {{ link.ChildVar }};
@@ -94,7 +94,7 @@ namespace GeneratedBot
         static async Task Main()
         {
             var bot = new TelegramBotClient("{{ TelegramToken }}");
-
+            
 
             const string conn =
                 "Host=host.docker.internal;Port=5433;Database=tbcdb;Username=postgres;Password=secret";
@@ -206,7 +206,7 @@ namespace GeneratedBot
         public async Task<NodeResult> ExecuteAsync(
             ITelegramBotClient bot, long chatId, CancellationToken ct)
         {
-            Chat chat = await bot.GetChatAsync(chatId);
+            Chat chat = await bot.GetChat(chatId);
 
             if (LogUsage)
                 Console.WriteLine($"[TextNode] Chat {chatId}: sending “{Text}”");
@@ -363,7 +363,8 @@ namespace GeneratedBot
             {
                 ChatId     = chatId,
                 IsIncoming = false,
-                BotId = 2,
+                BotId = BotConfig.BotId,
+                Timestamp = DateTime.UtcNow,
                 NodeType   = nameof(ActionNode),
                 Payload    = null,
                 Content    = Text
@@ -405,7 +406,8 @@ namespace GeneratedBot
                     {
                         ChatId     = chatId,
                         IsIncoming = true,
-                        BotId = 2,
+                        BotId = BotConfig.BotId,
+                        Timestamp = DateTime.UtcNow,
                         NodeType   = nameof(ActionNode),
                         Payload    = data,           // подпись кнопки
                         Content    = string.Empty
@@ -463,7 +465,8 @@ namespace GeneratedBot
                 {
                     ChatId     = chatId,
                     IsIncoming = false,
-                    BotId = 2,
+                    BotId = BotConfig.BotId,
+                    Timestamp = DateTime.UtcNow,
                     NodeType   = nameof(QuestionNode),
                     Payload    = null,
                     Content    = Text
@@ -508,8 +511,9 @@ namespace GeneratedBot
                         db.BotMessages.Add(new BotMessage
                         {
                             ChatId     = chatId,
-                            IsIncoming = true, 
-                            BotId = 2,
+                            IsIncoming = true,
+                            BotId = BotConfig.BotId,
+                            Timestamp = DateTime.UtcNow,
                             NodeType   = nameof(QuestionNode),
                             Payload    = null,           // можно продублировать answer, если нужно
                             Content    = answer
@@ -586,6 +590,7 @@ namespace GeneratedBot
         /// Chat-ID админа. Если null — уведомления в админку не шлём.
         /// </summary>
         public static long? AdminChatId { get; set; }
+        public static int BotId { get; set; }
 
         public static IDbContextFactory<AppDbContext>? DbFactory { get; set; }
     }

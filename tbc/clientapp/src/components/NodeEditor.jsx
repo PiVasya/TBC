@@ -19,14 +19,14 @@ export default function NodeEditor({
     botId,
     initialName,
     initialToken,
-    initialadminId,
+    initialAdminId,
     onBack,
     onCreated,
     onRebuilt
 }) {
     const [name, setName] = useState(initialName);
     const [token, setToken] = useState(initialToken);
-    const [adminId, setadminId] = useState(initialadminId);
+    const [adminId, setadminId] = useState(initialAdminId);
     const [versions, setVersions] = useState([]);
     const [selectedVersion, setSelectedVersion] = useState(null);
     const [dirty, setDirty] = useState(false);
@@ -63,9 +63,10 @@ export default function NodeEditor({
         setDirty(
             name !== initialName ||
             token !== initialToken ||
+            adminId !== initialAdminId ||
             changed
         );
-    }, [name, token, nodes, edges, initialName, initialToken]);
+    }, [name, token, adminId, nodes, edges, initialName, initialToken, initialAdminId]);
 
     useEffect(() => {
         if (!botId) return;
@@ -86,7 +87,7 @@ export default function NodeEditor({
     const handleSave = async () => {
         if (!dirty) return;
         if (!botId) {
-            const dto = await createBot({ name, telegramToken: token, schema: { nodes, edges } });
+            const dto = await createBot({ name, telegramToken: token, adminId, schema: { nodes, edges } });
             onCreated(dto);
         } else {
             await postSchema(botId, { nodes, edges });

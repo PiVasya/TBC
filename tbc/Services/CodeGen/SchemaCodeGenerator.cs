@@ -17,6 +17,7 @@ namespace tbc.Services.CodeGen
             string schemaJson,
             string telegramToken,
             long adminChatId,
+            int BotId,
             string templatesPath)
         {
             Console.WriteLine("[CodeGen] Starting GenerateCode");
@@ -123,6 +124,7 @@ namespace tbc.Services.CodeGen
                 TelegramToken = telegramToken,
                 AdminChatId = adminChatId,
                 Nodes = nodes,
+                BotId =  BotId,
                 Links = links,
                 Commands = commands,
                 DefaultNodeVar = defaultNode,
