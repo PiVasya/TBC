@@ -7,9 +7,9 @@ namespace tbc.Models.Requests
     {
         public string Name { get; set; } = null!;
         public string TelegramToken { get; set; } = null!;
-        public JsonElement Schema { get; set; }   // сюда прилетает { nodes: [...], edges: [...] }
 
-        // Эти поля могут прийти с фронта или остаться null/пустыми
+        public string AdminId { get; set; } = null!;
+        public JsonElement Schema { get; set; }
         public string? BotCode { get; set; }
         public string? BotProj { get; set; }
         public string? BotDocker { get; set; }

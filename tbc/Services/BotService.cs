@@ -45,6 +45,7 @@ namespace tbc.Services
             {
                 Name = req.Name,
                 Token = req.TelegramToken,
+                AdminId = req.AdminId,
                 Status = "Creating",
                 CreatedAt = DateTime.UtcNow
             };
