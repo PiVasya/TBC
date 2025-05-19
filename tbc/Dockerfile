@@ -1,30 +1,22 @@
-# (1) Базовый образ: ASP.NET Runtime + Docker CLI
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-RUN apt-get update && apt-get install -y docker.io
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+RUN apt-get update && apt-get install -y --no-install-recommends docker.io \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 80
 
-# (2) Этап сборки и публикации
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# 2.1) Сначала копируем только .csproj, чтобы кэшировать dotnet restore
-COPY tbc.csproj ./tbc.csproj
+COPY ["tbc.csproj", "./"]
 RUN dotnet restore "tbc.csproj"
 
-# 2.2) Теперь копируем всю папку tbc целиком: код, Data/, Models/, Services/, Migrations/ и т.д.
-COPY ./. ./
+COPY . .
+RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# 2.3) Собираем и публикуем приложение
-RUN dotnet publish "tbc.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-# (3) Финальный образ на базе runtime
-FROM base AS final
+FROM runtime AS final
 WORKDIR /app
-
-# Копируем опубликованные артефакты
 COPY --from=build /app/publish .
-
+COPY --from=build /src/Templates ./Templates
 ENV ASPNETCORE_URLS=http://+:80
 ENTRYPOINT ["dotnet", "tbc.dll"]

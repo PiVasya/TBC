@@ -73,6 +73,7 @@ namespace tbc.Services
 
             bot.Name = req.Name;
             bot.Token = req.TelegramToken;
+            bot.AdminId = req.AdminId;
             await _db.SaveChangesAsync();
             return ToDto(bot);
         }

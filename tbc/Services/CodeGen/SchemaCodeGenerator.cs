@@ -131,7 +131,7 @@ namespace tbc.Services.CodeGen
 
             // 8) остальные шаблоны ------------------------------------------------------------
             var proj = File.ReadAllText(Path.Combine(templatesPath, "BotProj.csproj.tpl"));
-            var docker = File.ReadAllText(Path.Combine(templatesPath, "Dockerfile.tpl"));
+            var docker = File.ReadAllText(Path.Combine(templatesPath, "Dockerfiletpl.tpl"));
 
             return (programCode, proj, docker);
         }

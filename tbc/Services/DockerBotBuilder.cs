@@ -78,7 +78,7 @@ namespace tbc.Services
             }
             else
             {
-                var dockerTpl = File.ReadAllText(Path.Combine(_tmplDir, "Dockerfile.tpl"));
+                var dockerTpl = File.ReadAllText(Path.Combine(_tmplDir, "Dockerfiletpl.tpl"));
                 dockerText = dockerTpl;
             }
             var dfPath = Path.Combine(basePath, "Dockerfile");

@@ -12,8 +12,9 @@
   <ItemGroup>
     <Compile Remove="compiler\**" />
     <Content Remove="compiler\**" />
-    <Content Include="Templates\**\*">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <Content Include="Templates\**\*.*">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <CopyToPublishDirectory>Always</CopyToPublishDirectory>
   </Content>
     <EmbeddedResource Remove="compiler\**" />
     <None Remove="compiler\**" />
