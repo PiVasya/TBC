@@ -95,11 +95,11 @@ export async function stopBot(id) {
 /**
  * Пересобрать (rebuild) контейнер бота
  */
-export async function rebuildBot(id, { name, telegramToken }) {
+export async function rebuildBot(id, { name, telegramToken ,adminId}) {
     const res = await fetch(`${BASE}/${id}/rebuild`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, telegramToken })
+        body: JSON.stringify({ name, telegramToken, adminId })
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));

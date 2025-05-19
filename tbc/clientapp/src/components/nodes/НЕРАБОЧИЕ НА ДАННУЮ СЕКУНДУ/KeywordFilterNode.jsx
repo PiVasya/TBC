@@ -1,5 +1,5 @@
 // clientapp/src/components/nodes/KeywordFilterNode.jsx
-import React, { useState } from 'react';
+/*import React, { useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import InlineNodeEditor from '../InlineNodeEditor';
 import './NodeStyles.css';
@@ -34,8 +34,6 @@ export default function KeywordFilterNode({ id, data }) {
                     <button onClick={() => data.onDelete(id)}>✕</button>
                 </div>
             </div>
-
-            {/* Пара слов-превью */}
             <div className="filter-preview">
                 {data.keywords
                     ? data.keywords.split(',')
@@ -57,7 +55,6 @@ export default function KeywordFilterNode({ id, data }) {
                 />
             )}
 
-            {/* Мы хотим, чтобы отработавшие сообщения шел «выход» на бан/удаление */}
             <Handle
                 type="source"
                 id="out"
@@ -67,3 +64,4 @@ export default function KeywordFilterNode({ id, data }) {
         </div>
     );
 }
+*/

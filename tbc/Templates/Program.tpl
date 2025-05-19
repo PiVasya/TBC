@@ -8,6 +8,8 @@ using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Types;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace GeneratedBot
 {
@@ -92,6 +94,23 @@ namespace GeneratedBot
         static async Task Main()
         {
             var bot = new TelegramBotClient("{{ TelegramToken }}");
+
+
+            const string conn =
+                "Host=host.docker.internal;Port=5433;Database=tbcdb;Username=postgres;Password=secret";
+
+
+            var opt = new DbContextOptionsBuilder<AppDbContext>()
+              .UseNpgsql(conn)
+              .Options;
+
+            // пул на 32 контекста (по умолчанию)
+            BotConfig.DbFactory = new PooledDbContextFactory<AppDbContext>(opt);
+
+            // если нужны миграции:
+            using var scope = BotConfig.DbFactory.CreateDbContext();
+            scope.Database.Migrate();
+
             await bot.DeleteWebhook();
             bot.StartReceiving(UpdateHandler, ErrorHandler);
             Console.WriteLine("Bot started...");
@@ -187,14 +206,19 @@ namespace GeneratedBot
         public async Task<NodeResult> ExecuteAsync(
             ITelegramBotClient bot, long chatId, CancellationToken ct)
         {
+            Chat chat = await bot.GetChatAsync(chatId);
+
             if (LogUsage)
                 Console.WriteLine($"[TextNode] Chat {chatId}: sending “{Text}”");
 
             if (NotifyAdmin && BotConfig.AdminChatId.HasValue)
+            {
                 await bot.SendMessage(
                     chatId: BotConfig.AdminChatId.Value,
-                    text: $"[Notify] Chat {chatId} reached TextNode “{Text}”",
+                    text: $"[Notify] Человек @{chat.Username} {chatId} достиг “{Text}”",
                     cancellationToken: ct);
+            }
+                
 
             var msg = await bot.SendMessage(
                 chatId: chatId,
@@ -332,8 +356,20 @@ namespace GeneratedBot
                                         replyMarkup: markup,
                                         cancellationToken: ct);
 
-        if (SaveToDb)
-            Console.WriteLine($"[ActionNode] Chat {chatId}: saving message {msg.MessageId} to DB");
+        if (SaveToDb && BotConfig.DbFactory is { } f)
+        {
+            using var db = f.CreateDbContext();
+            db.BotMessages.Add(new BotMessage
+            {
+                ChatId     = chatId,
+                IsIncoming = false,
+                BotId = 2,
+                NodeType   = nameof(ActionNode),
+                Payload    = null,
+                Content    = Text
+            });
+            db.SaveChanges();
+        }
 
         _pending[chatId] = (map, msg.MessageId, DeleteAfter, bot, ct);
         return new BranchResult(markup, map);
@@ -351,7 +387,6 @@ namespace GeneratedBot
             {
                 // убираем из ожидания, чтобы не реагировать дважды
                 _pending.Remove(chatId);
-                Console.WriteLine($"[ActionNode] Chat {chatId}: callback “{data}” → {next?.GetType().Name ?? "null"}");
 
                 // если флаг удаления стоит и у нас есть валидный messageId
                 if (entry.Delete && entry.MessageId != 0)
@@ -362,6 +397,23 @@ namespace GeneratedBot
                         await entry.Bot.DeleteMessage(chatId, entry.MessageId, entry.Ct);
                     });
                 }
+                // сохраняем факт нажатия кнопки
+                if (BotConfig.DbFactory is { } f2)
+                {
+                    using var db = f2.CreateDbContext();
+                    db.BotMessages.Add(new BotMessage
+                    {
+                        ChatId     = chatId,
+                        IsIncoming = true,
+                        BotId = 2,
+                        NodeType   = nameof(ActionNode),
+                        Payload    = data,           // подпись кнопки
+                        Content    = string.Empty
+                    });
+                    db.SaveChanges();
+                }
+
+
                 return true;
             }
             return false;
@@ -404,11 +456,19 @@ namespace GeneratedBot
                 text: Text,
                 cancellationToken: ct);
 
-            if (SaveToDb)
+            if (SaveToDb && BotConfig.DbFactory is { } f)
             {
-                Console.WriteLine(
-                    $"[QuestionNode] Chat {chatId}: saving question message {questionMsg.MessageId} to DB");
-                // TODO: реальное сохранение
+                using var db = f.CreateDbContext();
+                db.BotMessages.Add(new BotMessage
+                {
+                    ChatId     = chatId,
+                    IsIncoming = false,
+                    BotId = 2,
+                    NodeType   = nameof(QuestionNode),
+                    Payload    = null,
+                    Content    = Text
+                });
+                db.SaveChanges();
             }
 
             // планируем автoудалить вопрос через DurationSeconds (если нужно)
@@ -440,6 +500,21 @@ namespace GeneratedBot
                             // удаляем следующее сообщение (скорее всего — ответ)
                             await bot.DeleteMessage(chatId, questionMsg.MessageId + 1, ct);
                         });
+                    }
+
+                    if (BotConfig.DbFactory is { } f2)
+                    {
+                        using var db = f2.CreateDbContext();
+                        db.BotMessages.Add(new BotMessage
+                        {
+                            ChatId     = chatId,
+                            IsIncoming = true, 
+                            BotId = 2,
+                            NodeType   = nameof(QuestionNode),
+                            Payload    = null,           // можно продублировать answer, если нужно
+                            Content    = answer
+                        });
+                        db.SaveChanges();
                     }
 
                     return Next;
@@ -510,6 +585,42 @@ namespace GeneratedBot
         /// <summary>
         /// Chat-ID админа. Если null — уведомления в админку не шлём.
         /// </summary>
-        public static long? AdminChatId { get; set; } = 1202503239; // поставьте свой
+        public static long? AdminChatId { get; set; }
+
+        public static IDbContextFactory<AppDbContext>? DbFactory { get; set; }
+    }
+}
+
+namespace GeneratedBot
+{
+
+    internal class AppDbContext : DbContext
+    {
+        public DbSet<BotMessage> BotMessages => Set<BotMessage>();
+
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    }
+
+    public class BotMessage
+    {
+        public int Id { get; set; }
+        public int BotId { get; set; }
+        public long ChatId { get; set; }
+        public DateTime Timestamp { get; set; }
+        public bool IsIncoming { get; set; }
+        public string Content { get; set; } = null!;
+
+        /// <summary>
+        /// Тип ноды, из которой сообщение родилось
+        /// (TextNode, ActionNode, QuestionNode …).
+        /// </summary>
+        public string NodeType { get; set; } = null!;
+
+        /// <summary>
+        /// подпись выбранной кнопки.
+        /// Если QuestionNode — текст ответа пользователя.
+        /// В остальных случаях может быть null.
+        /// </summary>
+        public string? Payload { get; set; }
     }
 }

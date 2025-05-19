@@ -136,6 +136,7 @@ namespace tbc.Services
             // обновляем поля
             bot.Name = req.Name;
             bot.Token = req.TelegramToken;
+            bot.AdminId = req.AdminId;
             await _db.SaveChangesAsync();
 
             // пересобираем и рестартим
@@ -201,14 +202,14 @@ namespace tbc.Services
             );
             var cleanJson = clean.ToString(Formatting.None);
             Console.WriteLine($"[BotService] Clean JSON length={cleanJson.Length}");
-
+            Console.WriteLine($"[BotService] AdminId = {Convert.ToInt64(bot.AdminId)}");
             // 5) генерируем код
             Console.WriteLine($"[BotService] Calling SchemaCodeGenerator.GenerateCode...");
             var (generatedCode, generatedProj, generatedDocker) =
                 SchemaCodeGenerator.GenerateCode(
                     schemaJson: cleanJson,
                     telegramToken: bot.Token,
-                    adminChatId: 1202503239L,
+                    adminChatId: Convert.ToInt64(bot.AdminId),
                     templatesPath: _templatesPath);
             Console.WriteLine($"[BotService] GeneratedCode length={generatedCode.Length}");
             Console.WriteLine($"[BotService] GeneratedProj length={generatedProj.Length}");

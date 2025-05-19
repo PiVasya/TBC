@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using tbc.Data;
@@ -11,9 +12,11 @@ using tbc.Data;
 namespace tbc.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250518221334_added_AdminId_to_BotInstance")]
+    partial class added_AdminId_to_BotInstance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,23 +71,12 @@ namespace tbc.Migrations
                     b.Property<int>("BotId")
                         .HasColumnType("integer");
 
-                    b.Property<long>("ChatId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsIncoming")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("NodeType")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<string>("Payload")
-                        .HasColumnType("text");
 
                     b.Property<DateTime>("Timestamp")
                         .ValueGeneratedOnAdd()
@@ -93,9 +85,7 @@ namespace tbc.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Timestamp");
-
-                    b.HasIndex("BotId", "NodeType");
+                    b.HasIndex("BotId");
 
                     b.ToTable("BotMessages");
                 });

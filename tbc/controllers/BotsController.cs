@@ -88,7 +88,6 @@ namespace tbc.Controllers
         [HttpPost("{id:int}/rebuild")]
         public async Task<IActionResult> Rebuild(int id, [FromBody] UpdateBotRequest req)
         {
-            // при rebuild мы перерасписываем токен/имя, пересоздаём контейнер
             var dto = await _botService.RebuildAsync(id, req);
             return dto is null
                 ? NotFound(new { error = $"Bot with id={id} not found or failed to rebuild" })

@@ -19,12 +19,14 @@ export default function NodeEditor({
     botId,
     initialName,
     initialToken,
+    initialadminId,
     onBack,
     onCreated,
     onRebuilt
 }) {
     const [name, setName] = useState(initialName);
     const [token, setToken] = useState(initialToken);
+    const [adminId, setadminId] = useState(initialadminId);
     const [versions, setVersions] = useState([]);
     const [selectedVersion, setSelectedVersion] = useState(null);
     const [dirty, setDirty] = useState(false);
@@ -88,7 +90,7 @@ export default function NodeEditor({
             onCreated(dto);
         } else {
             await postSchema(botId, { nodes, edges });
-            await rebuildBot(botId, { name, telegramToken: token });
+            await rebuildBot(botId, { name, telegramToken: token ,adminId});
             onRebuilt();
         }
         setDirty(false);
@@ -105,6 +107,9 @@ export default function NodeEditor({
                 </label>
                 <label>Telegram-токен<br />
                     <input className="form-input" value={token} onChange={e => setToken(e.target.value)} />
+                </label>
+                <label>Чат айди админа<br />
+                    <input className="form-input" value={adminId} onChange={e => setadminId(e.target.value)} />
                 </label>
 
                 <button className="app-button sm" disabled={!dirty} onClick={handleSave}>💾 Сохранить</button>
@@ -125,7 +130,7 @@ export default function NodeEditor({
                         <option value="" disabled>Выберите…</option>
                         {versions.map(v =>
                             <option key={v.id} value={v.id}>
-                                {v.id} — {new Date(v.createdAt).toLocaleString()}
+                                {new Date(v.createdAt).toLocaleString()}
                             </option>
                         )}
                     </select>
