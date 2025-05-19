@@ -1,52 +1,81 @@
-name: CI – build & push (master)
+name: CI – Build & Push Docker Images
 
 on:
   push:
-    branches: [ master ]      # ← только master
-    tags:     [ 'v*' ]        # ← и все версии вида v1.2.3
+    branches: [ master ]
+    tags:    [ 'v*' ]
   workflow_dispatch:
 
 jobs:
-  docker:
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write         # даёт GITHUB_TOKEN право push-ить в ghcr
+      packages: write   # чтобы GITHUB_TOKEN мог пушить в GHCR
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    # buildx + (опц.) QEMU, если нужны arm64
-    - uses: docker/setup-buildx-action@v3
-    - uses: docker/setup-qemu-action@v3    # можно убрать, если только amd64
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-    - name: Login to GHCR
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Docker meta (теги/лейблы)
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ghcr.io/${{ github.repository }}/api
-        tags: |
-          type=ref,event=branch             # latest для master
-          type=sha,format=short             # sha-abcdef
-          type=semver,pattern={{version}}   # v1.2.3, если есть тег
-        labels: |
-          org.opencontainers.image.source=${{ github.repositoryUrl }}
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build & push API image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./tbc         # путь к исходникам
-        file: ./tbc/Dockerfile   # мульти-стейдж Dockerfile
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha     # кэш слоёв в GitHub
-        cache-to:   type=gha,mode=max
+      # ---- API IMAGE ----
+      - name: Docker metadata for API
+        id: meta-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/api
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=ref,event=branch
+            type=sha,format=short
+            type=semver,pattern={{version}}
+          labels: |
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+
+      - name: Build & push API
+        uses: docker/build-push-action@v5
+        with:
+          context: ./tbc
+          file:    ./tbc/Dockerfile
+          push:    true
+          tags:    ${{ steps.meta-api.outputs.tags }}
+          labels:  ${{ steps.meta-api.outputs.labels }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+      # ---- FRONTEND IMAGE ----
+      - name: Docker metadata for Frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/frontend
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=ref,event=branch
+            type=sha,format=short
+            type=semver,pattern={{version}}
+          labels: |
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+        
+      - name: Build & push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./tbc/clientapp
+          file:    ./tbc/clientapp/Dockerfile
+          push:    true
+          tags:    ${{ steps.meta-frontend.outputs.tags }}
+          labels:  ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
