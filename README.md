@@ -8,7 +8,6 @@
 
 * **Visual Studio 2022** (или Rider) с .NET 8 SDK и поддержкой Docker.
 * **Docker Desktop** + WSL 2 / Hyper‑V.
-* 4 ГБ свободной RAM и около 4 ГБ на диске для образов.
 
 ## 2. Запуск из Visual Studio
 
