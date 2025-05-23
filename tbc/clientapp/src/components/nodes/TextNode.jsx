@@ -13,6 +13,7 @@ export default function TextNode({ id, data }) {
         { name: 'notifyAdmin', label: 'Уведомить админа', type: 'checkbox' },
         { name: 'delete', label: 'Удалить сообщение', type: 'checkbox' },
         { name: 'duration', label: 'Задержка удаления(сек)', type: 'text' },
+        { name: 'logUsage', label: 'Логировать использование', type: 'checkbox' },
     ];
 
     const handleSave = upd => {

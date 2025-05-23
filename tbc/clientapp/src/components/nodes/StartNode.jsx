@@ -9,9 +9,6 @@ export default function StartNode({ id, data }) {
 
     const schemaFields = [
         { name: 'command', label: 'Команда запуска', type: 'text' },
-        { name: 'saveToDb', label: 'Сохранить команду в БД', type: 'checkbox' },
-        { name: 'logUsage',   label: 'Логировать использование',  type: 'checkbox' },
-        { name: 'notifyAdmin', label: 'Уведомить админа',    type: 'checkbox' },
     ];
 
     const handleSave = upd => {

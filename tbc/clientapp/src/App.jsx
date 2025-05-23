@@ -149,6 +149,7 @@ export default function App() {
                         botId={mode === 'edit' ? selected.id : null}
                         initialName={mode === 'edit' ? selected.name : ''}
                         initialToken={mode === 'edit' ? selected.telegramToken : ''}
+                        initialAdminId={mode === 'edit' ? selected.adminId : ''}
                         onBack={() => setMode('list')}
                         onCreated={onDone}   // после создания нового бота
                         onRebuilt={onDone}   // после rebuild при редактировании

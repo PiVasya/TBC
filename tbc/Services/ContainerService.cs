@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
-using tbc.Models;
+using tbc.Models.DTO;
 
 namespace tbc.Services
 {

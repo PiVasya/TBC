@@ -12,6 +12,7 @@ export default function QuestionNode({ id, data }) {
         { name: 'saveToDb', label: 'Сохранять в БД', type: 'checkbox' },
         { name: 'notifyAdmin', label: 'Уведомить админа', type: 'checkbox' },
         { name: 'delete', label: 'Удалить сообщение', type: 'checkbox' },
+        { name: 'logUsage', label: 'Логировать использование', type: 'checkbox' },
     ];
 
     const handleSave = upd => {

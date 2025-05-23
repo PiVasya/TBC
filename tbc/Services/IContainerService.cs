@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using tbc.Models;
+using tbc.Models.DTO;
 
 namespace tbc.Services
 {
