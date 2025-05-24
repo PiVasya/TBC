@@ -61,7 +61,7 @@ namespace tbc.Services
             await _db.SaveChangesAsync();
 
             // 3) стартуем контейнер
-            await RestartContainerAsync(bot, req.BotCode, req.BotProj, req.BotDocker, initialStatus: "Running");
+            await RestartContainerAsync(bot, initialStatus: "Running");
 
             return ToDto(bot);
         }
@@ -125,7 +125,7 @@ namespace tbc.Services
             var bot = await _db.BotInstances.FindAsync(id);
             if (bot is null) return false;
 
-            await RestartContainerAsync(bot, null, null, null, initialStatus: "Running");
+            await RestartContainerAsync(bot,initialStatus: "Running");
             return bot.Status == "Running";
         }
 
@@ -141,7 +141,7 @@ namespace tbc.Services
             await _db.SaveChangesAsync();
 
             // пересобираем и рестартим
-            await RestartContainerAsync(bot, null, null, null, initialStatus: "Running");
+            await RestartContainerAsync(bot, initialStatus: "Running");
             return ToDto(bot);
         }
 
@@ -154,9 +154,6 @@ namespace tbc.Services
         /// </summary>
         private async Task RestartContainerAsync(
             BotInstance bot,
-            string? userCode,
-            string? userProj,
-            string? userDocker,
             string initialStatus)
         {
             Console.WriteLine($"[BotService] === RestartContainerAsync start for BotId={bot.Id} ===");
@@ -218,9 +215,9 @@ namespace tbc.Services
             Console.WriteLine($"[BotService] GeneratedDocker length={generatedDocker.Length}");
 
             // 6) что пойдёт в контейнер
-            var codeToUse = string.IsNullOrWhiteSpace(userCode) ? generatedCode : userCode!;
-            var projToUse = string.IsNullOrWhiteSpace(userProj) ? generatedProj : userProj!;
-            var dockerToUse = string.IsNullOrWhiteSpace(userDocker) ? generatedDocker : userDocker!;
+            var codeToUse = generatedCode;
+            var projToUse = generatedProj;
+            var dockerToUse = generatedDocker;
             Console.WriteLine($"[BotService] Final code length={codeToUse.Length}, proj length={projToUse.Length}, docker length={dockerToUse.Length}");
 
             // 7) билд и запуск

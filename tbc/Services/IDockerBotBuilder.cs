@@ -12,9 +12,9 @@ namespace tbc.Services
         /// <returns>Id запущенного контейнера</returns>
         Task<string> CreateAndRunBot(
             string telegramToken,
-            string? botCode,
-            string? botProj,
-            string? botDocker
+            string botCode,
+            string botProj,
+            string botDocker
         );
 
         Task StopAndRemoveBot(string containerId);
