@@ -24,12 +24,10 @@ namespace tbc.Services
         }
 
         public async Task<string> CreateAndRunBot(
-            string telegramToken,
             string botCode,
             string botProj,
             string botDocker)
         {
-            Console.WriteLine($"[DockerBotBuilder] === CreateAndRunBot start, token={telegramToken} ===");
 
             // 1) Папка для проекта
             var folderName = "bot_" + Guid.NewGuid().ToString("N");

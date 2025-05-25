@@ -21,7 +21,7 @@ namespace tbc.Services.CodeGen
             string templatesPath)
         {
             Console.WriteLine("[CodeGen] Starting GenerateCode");
-            Console.WriteLine($"[CodeGen] Raw schemaJson length = {schemaJson?.Length}");
+            Console.WriteLine($"[CodeGen] Raw schemaJson length = {schemaJson.Length}");
 
             // 1) десериализуем схему ----------------------------------------------------------
             var schema = JsonConvert.DeserializeObject<FlowSchema>(schemaJson)

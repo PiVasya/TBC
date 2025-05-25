@@ -215,20 +215,14 @@ namespace tbc.Services
             Console.WriteLine($"[BotService] GeneratedDocker length={generatedDocker.Length}");
 
             // 6) что пойдёт в контейнер
-            var codeToUse = generatedCode;
-            var projToUse = generatedProj;
-            var dockerToUse = generatedDocker;
-            Console.WriteLine($"[BotService] Final code length={codeToUse.Length}, proj length={projToUse.Length}, docker length={dockerToUse.Length}");
-
-            // 7) билд и запуск
+            Console.WriteLine($"[BotService] Final code length={generatedCode.Length}, proj length={generatedProj.Length}, docker length={generatedDocker.Length}");
             try
             {
                 Console.WriteLine($"[BotService] Invoking DockerBotBuilder.CreateAndRunBot...");
                 var newId = await _builder.CreateAndRunBot(
-                    bot.Token,
-                    botCode: codeToUse,
-                    botProj: projToUse,
-                    botDocker: dockerToUse);
+                    botCode: generatedCode,
+                    botProj: generatedProj,
+                    botDocker: generatedDocker);
                 bot.ContainerId = newId;
                 bot.Status = "Running";
                 Console.WriteLine($"[BotService] New container started: {newId}");
