@@ -94,7 +94,7 @@ export default function App() {
                 loading
                     ? <div className="panel loading-panel">Загрузка…</div>
                     : <div className="panel">
-                    <h2>Список ботов</h2>
+                    <h2>Список ботовввввв</h2>
                     <button className="app-button sm" onClick={startNew}>
                         + Новый бот
                     </button>
