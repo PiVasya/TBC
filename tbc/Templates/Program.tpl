@@ -97,7 +97,7 @@ namespace GeneratedBot
             
 
             const string conn =
-                "Host=host.docker.internal;Port=5433;Database=tbcdb;Username=postgres;Password=secret";
+                "Host=host.docker.internal;Port=5433;Database=tbcdb;Username=tbc;Password=supersecret";
 
 
             var opt = new DbContextOptionsBuilder<AppDbContext>()
