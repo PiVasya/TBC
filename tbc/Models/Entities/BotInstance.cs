@@ -15,6 +15,7 @@ namespace tbc.Models.Entities
 
 
 
+
         // navigation
         public ICollection<BotMessage> Messages { get; set; } = new List<BotMessage>();
         public ICollection<PollSession> PollSessions { get; set; } = new List<PollSession>();
