@@ -10,7 +10,6 @@ namespace tbc.Models.Entities
 
         public int BotMessageId { get; set; }
         public BotMessage BotMessage { get; set; }
-
         public string Prompt { get; set; } // копия текста/label node
         public string Response { get; set; } // текст или нажатая кнопка
         public DateTime RespondedAt { get; set; }
