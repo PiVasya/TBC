@@ -6,7 +6,7 @@ using tbc.Services;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
-
+Console.WriteLine("Запуск...");
 // 1) Регистрируем сервис компрессии и исключаем из него text/html
 builder.Services.AddResponseCompression(options =>
 {
@@ -98,5 +98,5 @@ app.UseSpa(spa =>
         spa.UseReactDevelopmentServer(npmScript: "start");
     }
 });
-
+Console.WriteLine("Запуск завершён");
 app.Run();
