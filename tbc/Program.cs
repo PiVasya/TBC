@@ -89,14 +89,5 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllers();
 });
 
-app.UseSpa(spa =>
-{
-    spa.Options.SourcePath = "clientapp";
-
-    if (app.Environment.IsDevelopment())
-    {
-        spa.UseReactDevelopmentServer(npmScript: "start");
-    }
-});
 Console.WriteLine("Запуск завершён");
 app.Run();
