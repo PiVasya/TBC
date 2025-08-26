@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.EntityFrameworkCore;
 using tbc.Data;
 using tbc.Services;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,7 +39,41 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+
+    // 1) Ждём готовности БД (на случай когда контейнеры стартуют параллельно)
+    var maxAttempts = 30;
+    for (int attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        try
+        {
+            await db.Database.OpenConnectionAsync();
+            await db.Database.CloseConnectionAsync();
+            break;
+        }
+        catch (NpgsqlException)
+        {
+            if (attempt == maxAttempts) throw;
+            await Task.Delay(TimeSpan.FromSeconds(2));
+        }
+    }
+
+    // 2) Берём advisory-lock, чтобы миграцию выполняла только ОДНА реплика
+    //    Число (ключ) выбери любое фиксированное для проекта.
+    var lockKey = 8142142L;
+    await db.Database.OpenConnectionAsync();
+    try
+    {
+        await db.Database.ExecuteSqlRawAsync($"SELECT pg_advisory_lock({lockKey});");
+        await db.Database.MigrateAsync();
+    }
+    finally
+    {
+        try { await db.Database.ExecuteSqlRawAsync($"SELECT pg_advisory_unlock({lockKey});"); } catch { /* ignore */ }
+        await db.Database.CloseConnectionAsync();
+    }
+
+    // 3) (опционально) сидирование справочников
+    // await Seed.EnsureAsync(db);
 }
 // ——————————————————————————————————————————————————————————————————————————————
 
