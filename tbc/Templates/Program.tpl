@@ -15,6 +15,7 @@ namespace GeneratedBot
 {
     class Program
     {
+        
         private static readonly Dictionary<long, WaitForResponseResult> _pendingQuestion = new();
 
         // === 1. Создаём все ноды кроме ActionNode ===
@@ -93,11 +94,13 @@ namespace GeneratedBot
 
         static async Task Main()
         {
+            Console.WriteLine("поптыка запустить бота");
             var bot = new TelegramBotClient("{{ TelegramToken }}");
             
 
             const string conn =
-                "Host=host.docker.internal;Port=5432;Database=tbcdb;Username=tbc;Password=supersecret";
+                "Host=db;Port=5432;Database=tbcdb;Username=tbc;Password=supersecret";
+
 
 
             var opt = new DbContextOptionsBuilder<AppDbContext>()
